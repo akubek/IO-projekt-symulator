@@ -14,7 +14,7 @@ namespace IO_projekt_symulator.Server.Controllers
         // Wstrzykujemy serwis, ktory przechowuje stan
         public DevicesController(IVirtualDeviceService deviceService, ILogger<DevicesController> logger)
         {
-            _deviceService = deviceService;
+            _deviceService = deviceService; 
             _logger = logger;
         }
 
@@ -56,12 +56,18 @@ namespace IO_projekt_symulator.Server.Controllers
             return Ok(_deviceService.GetDeviceById(id));
         }
 
+
+
         // ... Tutaj dodasz endpointy dla Person 5 (np. [HttpPost] do tworzenia, [HttpDelete] do usuwania) ...
 
         // Przykladowy DTO (Data Transfer Object) dla Person 5
         public class CreateDeviceDto
         {
+            // Ta mała zmiana sprawi, że API automatycznie zwróci błąd,
+            // jeśli frontend (Osoba 5) zapomni podać nazwy.
+            [System.ComponentModel.DataAnnotations.Required]
             public string Name { get; set; } = string.Empty;
+
             public DeviceType Type { get; set; }
         }
 
@@ -76,3 +82,16 @@ namespace IO_projekt_symulator.Server.Controllers
         }
     }
 }
+
+/*
+plik DevicesController.cs jest już kompletny i zawiera:
+
+GET /api/devices (dla Panelu i frontendu)
+
+GET /api/devices/{id} (dla Panelu i frontendu)
+
+POST /api/devices/{id}/state (dla Panelu)
+
+POST /api/devices (dla Twojego kolegi z frontendu, Osoby 5)
+ 
+ */

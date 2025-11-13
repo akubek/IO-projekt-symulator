@@ -1,35 +1,194 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Plus, Cpu } from "lucide-react";
+import { motion } from "framer-motion"
+import { AnimatePresence } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import Button from "@mui/material/Button";
+import DeviceCard from "./components/DeviceCard";
+import CreateDeviceModal from "./components/CreateDeviceModal";
+import DeviceControlModal from "./components/DeviceControlModal";
+
 
 function App() {
-  const [count, setCount] = useState(0)
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    // State for modals and their functions
+    const [createModalOpen, setCreateModalOpen] = useState(false);
+    const [selectedDevice, setSelectedDevice] = useState(null);
+    const queryClient = useQueryClient();
+
+    // Fetch devices function with a flag
+    const { data: devices = [], isLoading } = useQuery({
+        queryKey: ['devices'],
+        //queryFn: () =>
+        // temporary function
+        queryFn: async () => {
+            await new Promise((resolve) => setTimeout(resolve, 300));
+            return [{
+                id: 1,
+                type: 'sensor',
+                location: 'Kitchen',
+                name: 'Thermometer',
+                description: 'MXH36VS001D',
+                config: {
+                    readOnly: true,
+                    min: -40,
+                    max: 85,
+                    step: 0.5,
+                },
+                state: {
+                    value: 24.5,
+                    unit: 'C',
+                }
+            },
+                {
+                    id: 2,
+                    type: 'switch',
+                    location: 'Living room',
+                    name: 'Some switch',
+                    description: 'SN623I01F',
+                    config: {
+                        readOnly: false,
+                    },
+                    state: {
+                        value: 0,
+                    }
+                }];
+        },
+    });
+
+    // Mutations for creating the device type object through API
+    const createDeviceMutation = useMutation({
+        //mutationFn: (deviceData) =>
+        // temporary function
+        mutationFn: async () => {
+            await new Promise((resolve) => setTimeout(resolve, 300));
+            return null;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['devices'] });
+            setCreateModalOpen(false);
+        },
+    });
+
+    // Mutation for updating the existing device state through API
+    const updateDeviceMutation = useMutation({
+        //mutationFn: ({ id, data }) =>
+        // temporary function
+        mutationFn: async () => {
+            await new Promise((resolve) => setTimeout(resolve, 300));
+            return null;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['devices'] });
+        },
+    });
+
+    // Mutation for deleting the existing device through API
+    const deleteDeviceMutation = useMutation({
+        //mutationFn: (id) =>
+        // temporary function
+        mutationFn: async () => {
+            await new Promise((resolve) => setTimeout(resolve, 300));
+            return null;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['devices'] });
+            setSelectedDevice(null);
+        },
+    });
+
+    // Handler for device state updates
+    const handleDeviceUpdate = (device, newState) => {
+        updateDeviceMutation.mutate({
+            id: device.id,
+            data: { state: newState }
+        });
+    };
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+            {/* Header */}
+            <div className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+                <div className="max-w-7xl mx-auto px-6 py-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg">
+                                <Cpu className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold text-slate-900">IoT Device Simulator</h1>
+                                <p className="text-sm text-slate-500">Simulate and control virtual devices</p>
+                            </div>
+                        </div>
+                        <Button onClick={() => setCreateModalOpen(true)}
+                            className="bg-gradient-to-r !text-white from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-lg">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Device
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="max-w-7xl mx-auto px-6 py-8">
+                {isLoading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="h-64 bg-white rounded-2xl animate-pulse" />
+                        ))}
+                    </div>)
+                    :
+                    devices.length === 0 ? (
+                    <div className="text-center py-20">
+                        <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Cpu className="w-12 h-12 text-slate-400" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-slate-900 mb-2">No devices yet</h3>
+                        <p className="text-slate-500 mb-6">Create first virtual IoT device</p>
+                        <Button
+                            onClick={() => setCreateModalOpen(true)}
+                            className="bg-gradient-to-r !text-white from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Device
+                        </Button>
+                    </div>) 
+                    :
+                    (<motion.div
+                        layout
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <AnimatePresence mode="popLayout">
+                            {devices.map((device) => (
+                                <DeviceCard
+                                    key={device.id}
+                                    device={device}
+                                    onSelect={() => setSelectedDevice(device)}
+                                    onUpdate={handleDeviceUpdate}/>)
+                            )}
+                        </AnimatePresence>
+                    </motion.div>)
+                }
+            </div>
+
+            {/* Modal - open only when createModalOpen == true */}
+            <CreateDeviceModal
+                open={createModalOpen}
+                onClose={() => setCreateModalOpen(false)}
+                onCreate={(data) => createDeviceMutation.mutate(data)}
+                isCreating={createDeviceMutation.isPending}
+            />
+
+            {/* Modal - open only when selectedDevice != null */}
+            <DeviceControlModal
+                device={selectedDevice}
+                open={!!selectedDevice}
+                onClose={() => setSelectedDevice(null)}
+                onUpdate={handleDeviceUpdate}
+                onDelete={() => deleteDeviceMutation.mutate(selectedDevice.id)}
+                isUpdating={updateDeviceMutation.isPending}
+                isDeleting={deleteDeviceMutation.isPending}
+            />
+        </div>
+    )
 }
 
 export default App

@@ -1,0 +1,67 @@
+{
+  "name": "Device",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique device identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Device name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [ "switch", "slider", "sensor" ],
+      "description": "Device type: switch (ON/OFF), slider (range control), or sensor (read-only measurement)"
+    },
+    "state": {
+      "type": "object",
+      "description": "Current device state",
+      "properties": {
+        "value": {
+          "type": "number",
+          "description": "Current value (0/1 for switch, min-max for slider, measurement for sensor)"
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit of measurement for sensors (\u00b0C, %, lux, etc.)"
+        }
+      }
+    },
+
+    "config": {
+      "type": "object",
+      "description": "Device configuration",
+      "properties": {
+        "min": {
+          "type": "number",
+          "description": "Minimum value for slider/sensor"
+        },
+        "max": {
+          "type": "number",
+          "description": "Maximum value for slider/sensor"
+        },
+        "step": {
+          "type": "number",
+          "description": "Step increment for slider"
+        },
+        "readonly": {
+          "type": "boolean",
+          "description": "Whether device is read-only (true for sensors)"
+        }
+      }
+    },
+
+    "location": {
+      "type": "string",
+      "description": "Device location (e.g., Living Room, Kitchen)"
+    },
+
+    "description": {
+      "type": "string",
+      "description": "Device description"
+    }
+  },
+  "required": [ "name", "type" ]
+}

@@ -5,47 +5,68 @@ namespace IO_projekt_symulator.Server.Services
 {
     public class VirtualDeviceService : IVirtualDeviceService
     {
-        // Uzywamy ConcurrentDictionary, poniewaz jest to Singleton i wiele
-        // watkow (np. rozne zapytania API) moze jednoczesnie z niego korzystac.
-        private readonly ConcurrentDictionary<Guid, VirtualDevice> _devices = new();
+        // Używamy nowej klasy 'Device'
+        private readonly ConcurrentDictionary<Guid, Device> _devices = new();
 
         public VirtualDeviceService()
         {
-            // Dodajmy jakies testowe urzadzenia na start
-            AddDevice("Swiatlo Salon", DeviceType.Light);
-            AddDevice("Czujnik Temp. Sypialnia", DeviceType.TemperatureSensor);
+            // Dodajmy urządzenia testowe pasujące do nowego schematu
+            AddDevice("Światło Salon", DeviceType.@switch, "Salon", "Główne światło");
+            AddDevice("Roleta Duża", DeviceType.slider, "Salon", "Roleta okienna");
+            AddDevice("Temperatura", DeviceType.sensor, "Sypialnia", "Czujnik temperatury");
         }
 
-        public VirtualDevice AddDevice(string name, DeviceType type)
+        public Device AddDevice(string name, DeviceType type, string? location, string? description)
         {
-            var device = new VirtualDevice { Name = name, Type = type };
+            var device = new Device
+            {
+                Name = name,
+                Type = type,
+                Location = location,
+                Description = description
+            };
 
-            // Inicjalizacja stanu poczatkowego
+            // TUTAJ BUDUJEMY URZĄDZENIE ZGODNIE ZE SCHEMATEM
             switch (type)
             {
-                case DeviceType.Light:
-                    device.State["power"] = "off";
-                    device.State["brightness"] = 100;
+                case DeviceType.@switch:
+                    device.State.Value = 0; // 0 = OFF, 1 = ON
+                    device.Config.Min = 0;
+                    device.Config.Max = 1;
+                    device.Config.Step = 1;
+                    device.Config.Readonly = false;
                     break;
-                case DeviceType.TemperatureSensor:
-                    device.State["temperature"] = 20.0;
+
+                case DeviceType.slider:
+                    device.State.Value = 0; // 0%
+                    device.Config.Min = 0;
+                    device.Config.Max = 100;
+                    device.Config.Step = 5;
+                    device.Config.Readonly = false;
                     break;
-                    // ... itd. dla innych typow
+
+                case DeviceType.sensor:
+                    device.State.Value = 21.5; // Domyślna temp.
+                    device.State.Unit = "°C";
+                    device.Config.Min = -10;
+                    device.Config.Max = 50;
+                    device.Config.Readonly = true;
+                    break;
             }
 
             _devices.TryAdd(device.Id, device);
             return device;
         }
 
-        public VirtualDevice? GetDeviceById(Guid id)
+        public Device? GetDeviceById(Guid id)
         {
             _devices.TryGetValue(id, out var device);
             return device;
         }
 
-        public IEnumerable<VirtualDevice> GetDevices()
+        public IEnumerable<Device> GetDevices()
         {
-            return _devices.Values.OrderBy(d => d.Name);
+            return _devices.Values;
         }
 
         public bool RemoveDevice(Guid id)
@@ -53,20 +74,23 @@ namespace IO_projekt_symulator.Server.Services
             return _devices.TryRemove(id, out _);
         }
 
-        public bool UpdateDeviceState(Guid id, Dictionary<string, object> newState)
+        // Nowa, prostsza metoda aktualizacji
+        public Device? UpdateDeviceState(Guid id, double newValue, bool bypassReadOnly = false)
         {
             if (!_devices.TryGetValue(id, out var device))
             {
-                return false; // Nie ma takiego urzadzenia
+                return null; // Nie ma urządzenia
             }
 
-            // Aktualizujemy stan urzadzenia
-            foreach (var entry in newState)
+            // Ta linia jest kluczowa:
+            // Blokujemy, TYLKO jeśli jest readonly I JEDNOCZEŚNIE nie chcemy tego ominąć
+            if (device.Config.Readonly && !bypassReadOnly)
             {
-                // Aktualizujemy istniejacy klucz lub dodajemy nowy
-                device.State[entry.Key] = entry.Value;
+                return null; // Zablokowane
             }
-            return true;
+
+            device.State.Value = newValue;
+            return device;
         }
     }
 }

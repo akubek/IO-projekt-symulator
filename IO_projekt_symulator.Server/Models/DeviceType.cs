@@ -1,12 +1,14 @@
-﻿namespace IO_projekt_symulator.Server.Models
+﻿using System.Text.Json.Serialization;
+
+namespace IO_projekt_symulator.Server.Models
 {
-    // Typy urzadzen, ktore nasz symulator bedzie obslugiwal.
+    // Ta linia automatycznie konwertuje nasz C# enum na tekst (string) w JSON-ie
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum DeviceType
     {
-        Light,
-        TemperatureSensor,
-        MotionSensor,
-        Shutter
+        // Używamy '@', ponieważ 'switch' to słowo kluczowe w C#
+        @switch,
+        slider,
+        sensor
     }
-    
 }

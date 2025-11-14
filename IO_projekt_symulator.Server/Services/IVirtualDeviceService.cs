@@ -4,19 +4,16 @@ namespace IO_projekt_symulator.Server.Services
 {
     public interface IVirtualDeviceService
     {
-        // Pobiera wszystkie urzadzenia
-        IEnumerable<VirtualDevice> GetDevices();
+        // Zwracamy teraz nową klasę 'Device'
+        IEnumerable<Device> GetDevices();
+        Device? GetDeviceById(Guid id);
 
-        // Pobiera jedno urzadzenie po ID
-        VirtualDevice? GetDeviceById(Guid id);
+        // Ta metoda będzie teraz mądrzejsza
+        Device AddDevice(string name, DeviceType type, string? location, string? description);
 
-        // Dodaje nowe urzadzenie (dla Twojego kolegi z frontendu Symulatora)
-        VirtualDevice AddDevice(string name, DeviceType type);
-
-        // Usuwa urzadzenie
         bool RemoveDevice(Guid id);
 
-        // Kluczowa metoda: Aktualizuje stan urzadzenia (dla Panelu Sterowania)
-        bool UpdateDeviceState(Guid id, Dictionary<string, object> newState);
+        // Ta metoda też się zmienia - będziemy aktualizować tylko 'value'
+        Device? UpdateDeviceState(Guid id, double newValue, bool bypassReadOnly = false);
     }
 }

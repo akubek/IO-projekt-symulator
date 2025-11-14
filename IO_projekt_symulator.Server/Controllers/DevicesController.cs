@@ -2,84 +2,106 @@
 using IO_projekt_symulator.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 
+using System.ComponentModel.DataAnnotations;
+
 namespace IO_projekt_symulator.Server.Controllers
 {
     [ApiController]
-    [Route("api/devices")] // Nasz adres bazowy: /api/devices
+    [Route("api/devices")]
     public class DevicesController : ControllerBase
     {
         private readonly IVirtualDeviceService _deviceService;
         private readonly ILogger<DevicesController> _logger;
 
-        // Wstrzykujemy serwis, ktory przechowuje stan
         public DevicesController(IVirtualDeviceService deviceService, ILogger<DevicesController> logger)
         {
-            _deviceService = deviceService; 
+            _deviceService = deviceService;
             _logger = logger;
         }
 
-        // ENDPOINT DLA PANELU I FRONTENDU SYMULATORA
         // GET /api/devices
+        // Ta metoda jest teraz zgodna z żądaniem frontendu 'loadDevices()'
         [HttpGet]
         public IActionResult GetAllDevices()
         {
             return Ok(_deviceService.GetDevices());
         }
 
-        // ENDPOINT DLA PANELU I FRONTENDU SYMULATORA
         // GET /api/devices/{id}
         [HttpGet("{id}")]
         public IActionResult GetDevice(Guid id)
         {
             var device = _deviceService.GetDeviceById(id);
-            if (device == null)
-            {
-                return NotFound(); // Nie znaleziono
-            }
+            if (device == null) return NotFound();
             return Ok(device);
         }
 
-        // *** KLUCZOWY ENDPOINT DLA PANELU STEROWANIA ***
-        // POST /api/devices/{id}/state
-        [HttpPost("{id}/state")]
-        public IActionResult UpdateState(Guid id, [FromBody] Dictionary<string, object> newState)
-        {
-            _logger.LogInformation($"Otrzymano polecenie zmiany stanu dla {id}: {newState}");
-
-            var success = _deviceService.UpdateDeviceState(id, newState);
-            if (!success)
-            {
-                return NotFound(); // Nie ma takiego urzadzenia
-            }
-
-            // Zwroc zaktualizowany stan urzadzenia
-            return Ok(_deviceService.GetDeviceById(id));
-        }
-
-
-
-        // ... Tutaj dodasz endpointy dla Person 5 (np. [HttpPost] do tworzenia, [HttpDelete] do usuwania) ...
-
-        // Przykladowy DTO (Data Transfer Object) dla Person 5
-        public class CreateDeviceDto
-        {
-            // Ta mała zmiana sprawi, że API automatycznie zwróci błąd,
-            // jeśli frontend (Osoba 5) zapomni podać nazwy.
-            [System.ComponentModel.DataAnnotations.Required]
-            public string Name { get; set; } = string.Empty;
-
-            public DeviceType Type { get; set; }
-        }
-
-        // ENDPOINT DLA FRONTENDU SYMULATORA (PERSON 5)
         // POST /api/devices
+        // Endpoint do tworzenia urządzeń (dla Osoby 5)
         [HttpPost]
         public IActionResult CreateDevice([FromBody] CreateDeviceDto dto)
         {
-            var newDevice = _deviceService.AddDevice(dto.Name, dto.Type);
-            // Zwracamy status 201 (Created) z lokalizacja nowego zasobu
+            // Walidacja typu, aby frontend nie wysłał nam "lodowka"
+            if (!Enum.TryParse<DeviceType>(dto.Type, true, out var deviceType))
+            {
+                return BadRequest("Invalid device type.");
+            }
+
+            var newDevice = _deviceService.AddDevice(dto.Name, deviceType, dto.Location, dto.Description);
             return CreatedAtAction(nameof(GetDevice), new { id = newDevice.Id }, newDevice);
         }
+
+        // POST /api/devices/{id}/state
+        // Endpoint do zmiany stanu (dla Panelu Sterowania)
+        [HttpPost("{id}/state")]
+        public IActionResult UpdateState(Guid id, [FromBody] UpdateStateDto dto)
+        {
+            _logger.LogInformation($"Otrzymano polecenie zmiany stanu dla {id}: {dto.Value}");
+
+            var updatedDevice = _deviceService.UpdateDeviceState(id, dto.Value);
+            if (updatedDevice == null)
+            {
+                return NotFound("Device not found or is read-only.");
+            }
+
+            return Ok(updatedDevice);
+        }
+
+        // DELETE /api/devices/{id}
+        // Endpoint do usuwania urządzeń (dla Osoby 5)
+        [HttpDelete("{id}")]
+        public IActionResult DeleteDevice(Guid id)
+        {
+            if (_deviceService.RemoveDevice(id))
+            {
+                return NoContent(); // Sukces, brak treści
+            }
+            return NotFound();
+        }
+    }
+
+    // --- NOWE KLASY DTO ---
+
+    /// <summary>
+    /// Dane, których oczekujemy od frontendu przy TWORZENIU urządzenia
+    /// </summary>
+    public class CreateDeviceDto
+    {
+        [Required]
+        public string Name { get; set; } = string.Empty;
+        [Required]
+        public string Type { get; set; } = string.Empty; // Przyjmujemy jako string
+        public string? Location { get; set; }
+        public string? Description { get; set; }
+    }
+
+    /// <summary>
+    /// Dane, których oczekujemy od Panelu przy ZMIANIE STANU
+    /// </summary>
+    public class UpdateStateDto
+    {
+        [Required]
+        public double Value { get; set; }
     }
 }
 

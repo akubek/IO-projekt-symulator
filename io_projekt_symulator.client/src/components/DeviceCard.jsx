@@ -42,7 +42,7 @@ export default function DeviceCard({ device, onSelect, onUpdate }) {
     const handleQuickToggle = (e) => {
         e.stopPropagation();
         if (device.type === 'switch' && !device.config?.readonly) {
-            onUpdate(device, { ...device.state, value: isOn ? 0 : 1 });
+            onUpdate(device, isOn ? 0 : 1 );
         }
     };
 
@@ -118,7 +118,7 @@ export default function DeviceCard({ device, onSelect, onUpdate }) {
                             </div>
                             <Slider
                                 value={[device.state?.value || 0]}
-                                onValueChange={handleSliderChange}
+                                onChange={handleSliderChange}
                                 min={device.config?.min || 0}
                                 max={device.config?.max || 100}
                                 step={device.config?.step || 1}

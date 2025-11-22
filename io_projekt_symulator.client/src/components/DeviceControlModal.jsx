@@ -36,7 +36,7 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
     if (!device) return null;
 
     // get config based on device type
-    const config = deviceTypeConfig[device.type] || deviceTypeConfig.switch;
+    const config = deviceTypeConfig[device.type];
     const Icon = config.icon;
 
     // handlers for different device types
@@ -44,7 +44,7 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
     const handleToggle = (checked) => {
         const newValue = checked ? 1 : 0;
         setLocalValue(newValue);
-        onUpdate(device, { ...device.state, value: newValue });
+        onUpdate(device, newValue);
     };
 
     const handleSliderChange = (value) => {
@@ -66,7 +66,7 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
 
     return (
         <>
-            <Dialog open={open} onOpenChange={onClose}>
+            <Dialog open={open}>
                 <DialogContent className="max-w-lg">
                         <div className="flex items-center gap-3 mb-2">
                             <div className={clsx("w-12 h-12 rounded-xl bg-gradient-to-br shadow-lg flex items-center justify-center", config.color)}>
@@ -107,7 +107,7 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                                         </span>
                                         <Switch
                                             checked={localValue > 0}
-                                            onCheckedChange={handleToggle}
+                                            onChange={(e, checked) => handleToggle(checked)}
                                             className="scale-125"
                                             disabled={isUpdating}
                                         />
@@ -131,8 +131,8 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                                     </div>
                                     <Slider
                                         value={[localValue]}
-                                        onValueChange={handleSliderChange}
-                                        onValueCommit={handleSliderCommit}
+                                        onChange={handleSliderChange}
+                                        onChangeCommitted={handleSliderCommit}
                                         min={device.config?.min || 0}
                                         max={device.config?.max || 100}
                                         step={device.config?.step || 1}
@@ -220,7 +220,7 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
             </Dialog>
 
             {/* Delete Confirmation */}
-            <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+            <Dialog open={showDeleteConfirm} onChange={setShowDeleteConfirm}>
                 <DialogContent>
                         <DialogTitle>Delete Device?</DialogTitle>
                         <DialogContentText>

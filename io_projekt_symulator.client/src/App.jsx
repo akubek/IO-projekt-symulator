@@ -16,67 +16,46 @@ function App() {
     const [selectedDevice, setSelectedDevice] = useState(null);
     const queryClient = useQueryClient();
 
-    // Fetch devices function with a flag
+    // Fetch devices function
     const { data: devices = [], isLoading } = useQuery({
         queryKey: ['devices'],
-        //queryFn: () =>
-        // temporary function
         queryFn: async () => {
-            await new Promise((resolve) => setTimeout(resolve, 300));
-            return [{
-                id: 1,
-                type: 'sensor',
-                location: 'Kitchen',
-                name: 'Thermometer',
-                description: 'MXH36VS001D',
-                config: {
-                    readOnly: true,
-                    min: -40,
-                    max: 85,
-                    step: 0.5,
-                },
-                state: {
-                    value: 24.5,
-                    unit: 'C',
-                }
-            },
-                {
-                    id: 2,
-                    type: 'switch',
-                    location: 'Living room',
-                    name: 'Some switch',
-                    description: 'SN623I01F',
-                    config: {
-                        readOnly: false,
-                    },
-                    state: {
-                        value: 0,
-                    }
-                }];
-        },
+            const response = await fetch("/api/devices");
+            if (!response.ok) { throw new Error("Failed to fetch devices"); }
+            return response.json();
+        }
     });
+
+    
 
     // Mutations for creating the device type object through API
     const createDeviceMutation = useMutation({
-        //mutationFn: (deviceData) =>
-        // temporary function
-        mutationFn: async () => {
-            await new Promise((resolve) => setTimeout(resolve, 300));
-            return null;
+        mutationFn: async (deviceData) => {
+            const response = await fetch("/api/devices", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(deviceData),
+            });
+            if (!response.ok) { throw new Error("Create device failed"); }
+            return response.json();
         },
+
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['devices'] });
+            queryClient.invalidateQueries({ queryKey: ["devices"] });
             setCreateModalOpen(false);
         },
     });
 
     // Mutation for updating the existing device state through API
     const updateDeviceMutation = useMutation({
-        //mutationFn: ({ id, data }) =>
-        // temporary function
-        mutationFn: async () => {
-            await new Promise((resolve) => setTimeout(resolve, 300));
-            return null;
+        mutationFn: async ({ id, data }) => {
+            const response = await fetch(`/api/devices/${id}/state`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            if (!response.ok) { throw new Error("Create update failed"); }
+            return response.json();
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['devices'] });
@@ -98,10 +77,10 @@ function App() {
     });
 
     // Handler for device state updates
-    const handleDeviceUpdate = (device, newState) => {
+    const handleDeviceUpdate = (device, newVal) => {
         updateDeviceMutation.mutate({
             id: device.id,
-            data: { state: newState }
+            data: { value: newVal }
         });
     };
 

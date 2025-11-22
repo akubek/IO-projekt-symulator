@@ -27,6 +27,7 @@ export default function CreateDeviceModal({ open, onClose, onCreate, isCreating 
         location: '',
         description: '',
         initialValue: 0,
+        readonly: false,
         min: 0,
         max: 100,
         step: 1,
@@ -60,10 +61,11 @@ export default function CreateDeviceModal({ open, onClose, onCreate, isCreating 
         // Reset form after submission
         setFormData({
             name: '',
-            type: 'switch',
+            type: formData.type,
             location: '',
             description: '',
             initialValue: 0,
+            readonly: false,
             min: 0,
             max: 100,
             step: 1,
@@ -72,7 +74,7 @@ export default function CreateDeviceModal({ open, onClose, onCreate, isCreating 
     };
 
     return (
-        <Dialog open={open} onOpenChange={onClose}>
+        <Dialog open={open}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogTitle className="text-2xl">Create New Device</DialogTitle>
 

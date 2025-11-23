@@ -1,4 +1,7 @@
-﻿using IO_projekt_symulator.Server.Models;
+﻿using IO_projekt_symulator.Server.Controllers;
+using IO_projekt_symulator.Server.Hubs;
+using IO_projekt_symulator.Server.Models;
+using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 
 namespace IO_projekt_symulator.Server.Services
@@ -7,53 +10,76 @@ namespace IO_projekt_symulator.Server.Services
     {
         // Używamy nowej klasy 'Device'
         private readonly ConcurrentDictionary<Guid, Device> _devices = new();
-
-        public VirtualDeviceService()
+        // To jest Twój "Nadajnik". Pozwala wysłać wiadomość do wszystkich podłączonych klientów.
+        private readonly IHubContext<DevicesHub> _hubContext;
+        public VirtualDeviceService(IHubContext<DevicesHub> hubContext)
         {
+            _hubContext = hubContext;
             // Dodajmy urządzenia testowe pasujące do nowego schematu
-            AddDevice("Światło Salon", DeviceType.@switch, "Salon", "Główne światło");
-            AddDevice("Roleta Duża", DeviceType.slider, "Salon", "Roleta okienna");
-            AddDevice("Temperatura", DeviceType.sensor, "Sypialnia", "Czujnik temperatury");
+            //AddDevice("Światło Salon", DeviceType.@switch, "Salon", "Główne światło");
+            //AddDevice("Roleta Duża", DeviceType.slider, "Salon", "Roleta okienna");
+            //AddDevice("Temperatura", DeviceType.sensor, "Sypialnia", "Czujnik temperatury");
         }
 
-        public Device AddDevice(string name, DeviceType type, string? location, string? description)
+        public Device AddDevice(CreateDeviceDto dto)
         {
+            // Parsowanie typu (string -> enum)
+            if (!Enum.TryParse<DeviceType>(dto.Type, true, out var deviceType))
+            {
+                deviceType = DeviceType.@switch; // Fallback, jeśli typ jest błędny
+            }
             var device = new Device
             {
-                Name = name,
-                Type = type,
-                Location = location,
-                Description = description
+                Name = dto.Name,
+                Type = deviceType,
+                Location = dto.Location,
+                Description = dto.Description
             };
-
-            // TUTAJ BUDUJEMY URZĄDZENIE ZGODNIE ZE SCHEMATEM
-            switch (type)
+            if (dto.Config != null)
             {
-                case DeviceType.@switch:
-                    device.State.Value = 0; // 0 = OFF, 1 = ON
-                    device.Config.Min = 0;
-                    device.Config.Max = 1;
-                    device.Config.Step = 1;
-                    device.Config.Readonly = false;
-                    break;
-
-                case DeviceType.slider:
-                    device.State.Value = 0; // 0%
-                    device.Config.Min = 0;
-                    device.Config.Max = 100;
-                    device.Config.Step = 5;
-                    device.Config.Readonly = false;
-                    break;
-
-                case DeviceType.sensor:
-                    device.State.Value = 21.5; // Domyślna temp.
-                    device.State.Unit = "°C";
-                    device.Config.Min = -10;
-                    device.Config.Max = 50;
-                    device.Config.Readonly = true;
-                    break;
+                device.Config.Readonly = dto.Config.Readonly;
+                device.Config.Min = dto.Config.Min;
+                device.Config.Max = dto.Config.Max;
+                device.Config.Step = dto.Config.Step;
             }
+            else
+            {
+                // TUTAJ BUDUJEMY URZĄDZENIE ZGODNIE ZE SCHEMATEM
+                switch (deviceType)
+                {
+                    case DeviceType.@switch:
+                        device.State.Value = 0; // 0 = OFF, 1 = ON
+                        device.Config.Min = 0;
+                        device.Config.Max = 1;
+                        device.Config.Step = 1;
+                        device.Config.Readonly = false;
+                        break;
 
+                    case DeviceType.slider:
+                        device.State.Value = 0; // 0%
+                        device.Config.Min = 0;
+                        device.Config.Max = 100;
+                        device.Config.Step = 5;
+                        device.Config.Readonly = false;
+                        break;
+
+                    case DeviceType.sensor:
+                        device.State.Value = 21.5; // Domyślna temp.
+                        device.State.Unit = "°C";
+                        device.Config.Min = -10;
+                        device.Config.Max = 50;
+                        device.Config.Readonly = true;
+                        break;
+                }
+            }
+            if (dto.State != null)
+            {
+                // Jeśli frontend podał wartość startową, użyj jej
+                if (dto.State.Value.HasValue)
+                    device.State.Value = dto.State.Value.Value;
+
+                device.State.Unit = dto.State.Unit;
+            }
             _devices.TryAdd(device.Id, device);
             return device;
         }
@@ -74,22 +100,45 @@ namespace IO_projekt_symulator.Server.Services
             return _devices.TryRemove(id, out _);
         }
 
-        // Nowa, prostsza metoda aktualizacji
-        public Device? UpdateDeviceState(Guid id, double newValue, bool bypassReadOnly = false)
+        
+        // --- ZMODYFIKOWANA METODA UPDATE ---
+        public Device? UpdateDeviceState(Guid id, double? newValue, string? newUnit, bool bypassReadOnly = false)
         {
-            if (!_devices.TryGetValue(id, out var device))
+            if (!_devices.TryGetValue(id, out var device)) return null;
+
+            if (device.Config.Readonly && !bypassReadOnly) return null;
+
+            // Logika wykrywania zmian (dla SignalR)
+            bool changed = false;
+
+            // Aktualizuj wartość jeśli podano
+            if (newValue.HasValue)
             {
-                return null; // Nie ma urządzenia
+                double oldValue = device.State.Value ?? 0;
+                if (Math.Abs(oldValue - newValue.Value) > 0.001)
+                {
+                    device.State.Value = newValue.Value;
+                    changed = true;
+                }
             }
 
-            // Ta linia jest kluczowa:
-            // Blokujemy, TYLKO jeśli jest readonly I JEDNOCZEŚNIE nie chcemy tego ominąć
-            if (device.Config.Readonly && !bypassReadOnly)
+            // Aktualizuj jednostkę jeśli podano
+            if (!string.IsNullOrEmpty(newUnit) && device.State.Unit != newUnit)
             {
-                return null; // Zablokowane
+                device.State.Unit = newUnit;
+                changed = true;
             }
 
-            device.State.Value = newValue;
+            // Wyślij powiadomienie tylko jeśli coś się zmieniło
+            if (changed)
+            {
+                // UWAGA: Tutaj wysyłamy teraz cały obiekt stanu lub wartość, zależnie jak umówiliście się z frontendem.
+                // Dla uproszczenia wysyłamy nową wartość, ale frontend może oczekiwać całego obiektu.
+                // Jeśli frontend nasłuchuje (id, value), to zostawiamy tak:
+                if (newValue.HasValue)
+                    _hubContext.Clients.All.SendAsync("UpdateReceived", device.Id, newValue.Value);
+            }
+
             return device;
         }
     }

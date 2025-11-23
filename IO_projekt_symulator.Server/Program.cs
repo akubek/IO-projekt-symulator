@@ -1,7 +1,10 @@
+using IO_projekt_symulator.Server.Hubs;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+// 1. DODAJ SIGNALR DO KONTENERA
+builder.Services.AddSignalR();
 builder.Services.AddControllers();
 builder.Services.AddSingleton<IO_projekt_symulator.Server.Services.IVirtualDeviceService, IO_projekt_symulator.Server.Services.VirtualDeviceService>();
 // Rejestrujemy nasza usluge dzialajaca w tle
@@ -28,6 +31,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// 1. Najpierw konkretne adresy (SignalR)
+app.MapHub<DevicesHub>("/devicesHub");
+
+// 2. Na samym koñcu "wszystko inne" (React)
 app.MapFallbackToFile("/index.html");
 
 app.Run();

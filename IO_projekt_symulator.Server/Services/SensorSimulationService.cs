@@ -43,7 +43,7 @@ namespace IO_projekt_symulator.Server.Services
                         double newTemp = Math.Round(currentTemp + change, 1);
 
                         // 4. Zaktualizuj stan, omijając zabezpieczenie "readonly"
-                        deviceService.UpdateDeviceState(sensor.Id, newTemp, true); // <-- Ustawiamy bypassReadOnly na true
+                        deviceService.UpdateDeviceState(sensor.Id, newTemp, null,true); // <-- Ustawiamy bypassReadOnly na true
 
                         _logger.LogInformation($"Symulator zmienil temperature dla '{sensor.Name}' na {newTemp}°C");
                     }

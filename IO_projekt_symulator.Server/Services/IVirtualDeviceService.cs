@@ -1,4 +1,5 @@
-﻿using IO_projekt_symulator.Server.Models;
+﻿using IO_projekt_symulator.Server.Controllers;
+using IO_projekt_symulator.Server.Models;
 
 namespace IO_projekt_symulator.Server.Services
 {
@@ -8,12 +9,12 @@ namespace IO_projekt_symulator.Server.Services
         IEnumerable<Device> GetDevices();
         Device? GetDeviceById(Guid id);
 
-        // Ta metoda będzie teraz mądrzejsza
-        Device AddDevice(string name, DeviceType type, string? location, string? description);
+        // ZMIANA: Przyjmujemy całe DTO
+        Device AddDevice(CreateDeviceDto dto);
 
         bool RemoveDevice(Guid id);
 
-        // Ta metoda też się zmienia - będziemy aktualizować tylko 'value'
-        Device? UpdateDeviceState(Guid id, double newValue, bool bypassReadOnly = false);
+        // ZMIANA: Dodajemy 'unit' (może być null)
+        Device? UpdateDeviceState(Guid id, double? newValue, string? newUnit, bool bypassReadOnly = false);
     }
 }

@@ -48,15 +48,15 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
     };
 
     const handleSliderChange = (value) => {
-        setLocalValue(value[0]);
+        setLocalValue(value);
     };
 
-    const handleSliderCommit = (value) => {
-        onUpdate(device, { ...device.state, value: value[0] });
+    const handleSliderCommit = () => {
+        onUpdate(device, Number(localValue) );
     };
 
     const handleSensorUpdate = () => {
-        onUpdate(device, { ...device.state, value: Number(localValue) });
+        onUpdate(device, Number(localValue) );
     };
 
     const handleDelete = () => {
@@ -131,7 +131,7 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                                     </div>
                                     <Slider
                                         value={[localValue]}
-                                        onChange={handleSliderChange}
+                                        onChange={(e, value) => handleSliderChange(value)}
                                         onChangeCommitted={handleSliderCommit}
                                         min={device.config?.min || 0}
                                         max={device.config?.max || 100}

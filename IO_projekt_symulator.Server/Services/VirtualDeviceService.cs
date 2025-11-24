@@ -3,18 +3,71 @@ using IO_projekt_symulator.Server.Hubs;
 using IO_projekt_symulator.Server.Models;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
+using System.Text.Json;
 
 namespace IO_projekt_symulator.Server.Services
 {
     public class VirtualDeviceService : IVirtualDeviceService
     {
         // Używamy nowej klasy 'Device'
-        private readonly ConcurrentDictionary<Guid, Device> _devices = new();
+        private  ConcurrentDictionary<Guid, Device> _devices = new();
         // To jest Twój "Nadajnik". Pozwala wysłać wiadomość do wszystkich podłączonych klientów.
         private readonly IHubContext<DevicesHub> _hubContext;
-        public VirtualDeviceService(IHubContext<DevicesHub> hubContext)
+        private readonly string _filePath = "devices_db.json"; // Nazwa pliku bazy
+        public VirtualDeviceService(IHubContext<DevicesHub> hubContext, IHostApplicationLifetime lifetime)
         {
             _hubContext = hubContext;
+
+            // Próba wczytania danych przy starcie
+            LoadData();
+
+            // Jeśli plik był pusty (pierwsze uruchomienie), dodaj startowe (opcjonalnie)
+            if (_devices.IsEmpty)
+            {
+                // Tu możesz dodać te swoje startowe urządzenia testowe, jeśli chcesz
+                // AddDevice("Test", DeviceType.@switch, "Salon", "Opis");
+            }
+
+            // Zarejestruj akcję zapisu przy zamykaniu aplikacji
+            lifetime.ApplicationStopping.Register(SaveData);
+        }
+
+        // Metoda do zapisu do pliku
+        private void SaveData()
+        {
+            try
+            {
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var jsonString = JsonSerializer.Serialize(_devices.Values, options);
+                File.WriteAllText(_filePath, jsonString);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Błąd zapisu danych: {ex.Message}");
+            }
+        }
+
+        // Metoda do odczytu z pliku
+        private void LoadData()
+        {
+            if (!File.Exists(_filePath)) return;
+
+            try
+            {
+                var jsonString = File.ReadAllText(_filePath);
+                var devicesList = JsonSerializer.Deserialize<List<Device>>(jsonString);
+
+                if (devicesList != null)
+                {
+                    _devices = new ConcurrentDictionary<Guid, Device>(
+                        devicesList.ToDictionary(d => d.Id, d => d)
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Błąd odczytu danych: {ex.Message}");
+            }
             // Dodajmy urządzenia testowe pasujące do nowego schematu
             //AddDevice("Światło Salon", DeviceType.@switch, "Salon", "Główne światło");
             //AddDevice("Roleta Duża", DeviceType.slider, "Salon", "Roleta okienna");
@@ -33,7 +86,8 @@ namespace IO_projekt_symulator.Server.Services
                 Name = dto.Name,
                 Type = deviceType,
                 Location = dto.Location,
-                Description = dto.Description
+                Description = dto.Description,
+                CreatedAt = DateTime.UtcNow // <-- Ustawiamy czas serwera
             };
             if (dto.Config != null)
             {

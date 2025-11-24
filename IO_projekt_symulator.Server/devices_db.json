@@ -1,0 +1,38 @@
+﻿[
+  {
+    "id": "11111111-1111-1111-1111-111111111111",
+    "name": "Rolety Salon",
+    "type": "slider",
+    "state": {
+      "value": 50,
+      "unit": null
+    },
+    "config": {
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "readonly": false
+    },
+    "location": "Salon",
+    "description": "Rolety automatyczne przy oknie balkonowym",
+    "createdAt": "2025-01-01T12:00:00Z"
+  },
+  {
+    "id": "22222222-2222-2222-2222-222222222222",
+    "name": "Termometr Zewnętrzny",
+    "type": "sensor",
+    "state": {
+      "value": 12.5,
+      "unit": "°C"
+    },
+    "config": {
+      "min": -30,
+      "max": 50,
+      "step": 0.1,
+      "readonly": true
+    },
+    "location": "Taras",
+    "description": "Czujnik temperatury na zewnątrz",
+    "createdAt": "2025-01-01T12:05:00Z"
+  }
+]

@@ -41,6 +41,12 @@ namespace IO_projekt_symulator.Server.Services
                         // 3. Oblicz nową losową wartość
                         double change = (rand.NextDouble() - 0.5); // Losowa zmiana +/- 0.5
                         double newTemp = Math.Round(currentTemp + change, 1);
+                        // Jeśli urządzenie ma zdefiniowane Min i Max, trzymaj się ich!
+                        if (sensor.Config.Min.HasValue && sensor.Config.Max.HasValue)
+                        {
+                            // Math.Clamp obcina wartość, jeśli wyjdzie poza ramy
+                            newTemp = Math.Clamp(newTemp, sensor.Config.Min.Value, sensor.Config.Max.Value);
+                        }
 
                         // 4. Zaktualizuj stan, omijając zabezpieczenie "readonly"
                         deviceService.UpdateDeviceState(sensor.Id, newTemp, null,true); // <-- Ustawiamy bypassReadOnly na true

@@ -32,6 +32,9 @@ namespace IO_projekt_symulator.Server.Models
 
         [JsonPropertyName("description")]
         public string? Description { get; set; }
+
+        [JsonPropertyName("createdAt")]
+        public DateTime CreatedAt { get; set; }
     }
 
     /// <summary>

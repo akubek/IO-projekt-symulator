@@ -26,8 +26,6 @@ function App() {
         }
     });
 
-    
-
     // Mutations for creating the device type object through API
     const createDeviceMutation = useMutation({
         mutationFn: async (deviceData) => {
@@ -64,14 +62,20 @@ function App() {
 
     // Mutation for deleting the existing device through API
     const deleteDeviceMutation = useMutation({
-        //mutationFn: (id) =>
-        // temporary function
-        mutationFn: async () => {
-            await new Promise((resolve) => setTimeout(resolve, 300));
-            return null;
+        mutationFn: async (id) => {
+            const response = await fetch(`/api/devices/${id}`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) { throw new Error("Failed to delete"); }
+            else if (response.status === 200) return null;
         },
+
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["devices"] });
+        },
+
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['devices'] });
             setSelectedDevice(null);
         },
     });

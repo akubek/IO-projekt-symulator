@@ -41,15 +41,8 @@ export default function DeviceCard({ device, onSelect, onUpdate }) {
     //handler for quick toggle on a switch device
     const handleQuickToggle = (e) => {
         e.stopPropagation();
-        if (device.type === 'switch' && !device.config?.readonly) {
-            onUpdate(device, isOn ? 0 : 1 );
-        }
-    };
-
-    //handler for a quick slider change
-    const handleSliderChange = (value) => {
-        if (device.type === 'slider' && !device.config?.readonly) {
-            onUpdate(device, { ...device.state, value: value[0] });
+        if (device.type === 'switch') {
+            onUpdate(device, isOn ? 0 : 1);
         }
     };
 
@@ -116,15 +109,16 @@ export default function DeviceCard({ device, onSelect, onUpdate }) {
                                     {device.config?.min || 0} - {device.config?.max || 100}
                                 </p>
                             </div>
-                            <Slider
-                                value={[device.state?.value || 0]}
-                                onChange={handleSliderChange}
-                                min={device.config?.min || 0}
-                                max={device.config?.max || 100}
-                                step={device.config?.step || 1}
-                                disabled={device.config?.readonly}
-                                className="cursor-pointer"
-                            />
+                            <div className="mt-3 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <motion.div
+                                    className={clsx("h-full bg-gradient-to-r", config.color)}
+                                    initial={{ width: 0 }}
+                                    animate={{
+                                        width: `${((device.state?.value || 0) / (device.config?.max || 100)) * 100}%`
+                                    }}
+                                    transition={{ duration: 0.5 }}
+                                />
+                            </div>
                         </div>
                     )}
 

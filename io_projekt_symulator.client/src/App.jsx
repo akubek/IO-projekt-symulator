@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Cpu } from "lucide-react";
 import { motion } from "framer-motion"
 import { AnimatePresence } from "framer-motion";
@@ -25,6 +25,17 @@ function App() {
             return response.json();
         }
     });
+
+    // Polling effect to refresh device list every 5 seconds
+    useEffect(() => {
+        // do not poll if modal is open
+        if (selectedDevice || createModalOpen) return;
+        const id = setInterval(() => {
+            queryClient.invalidateQueries({ queryKey: ['devices'] });
+        }, 5000);
+        return () => clearInterval(id);
+    }, [selectedDevice, createModalOpen, queryClient]);
+
 
     // Mutations for creating the device type object through API
     const createDeviceMutation = useMutation({

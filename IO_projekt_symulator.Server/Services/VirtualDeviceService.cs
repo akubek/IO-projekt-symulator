@@ -14,7 +14,7 @@ namespace IO_projekt_symulator.Server.Services
         // To jest Twój "Nadajnik". Pozwala wysłać wiadomość do wszystkich podłączonych klientów.
         private readonly IHubContext<DevicesHub> _hubContext;
         private readonly string _filePath = "devices_db.json"; // Nazwa pliku bazy
-        public VirtualDeviceService(IHubContext<DevicesHub> hubContext, IHostApplicationLifetime lifetime)
+        public VirtualDeviceService(IHubContext<DevicesHub> hubContext)
         {
             _hubContext = hubContext;
 
@@ -28,8 +28,7 @@ namespace IO_projekt_symulator.Server.Services
                 // AddDevice("Test", DeviceType.@switch, "Salon", "Opis");
             }
 
-            // Zarejestruj akcję zapisu przy zamykaniu aplikacji
-            lifetime.ApplicationStopping.Register(SaveData);
+         
         }
 
         // Metoda do zapisu do pliku
@@ -135,6 +134,8 @@ namespace IO_projekt_symulator.Server.Services
                 device.State.Unit = dto.State.Unit;
             }
             _devices.TryAdd(device.Id, device);
+            // --- POPRAWKA (Punkt 4): Zapisujemy natychmiast po dodaniu ---
+            SaveData();
             return device;
         }
 
@@ -168,6 +169,15 @@ namespace IO_projekt_symulator.Server.Services
             // Aktualizuj wartość jeśli podano
             if (newValue.HasValue)
             {
+                double val = newValue.Value;
+
+                // --- POPRAWKA (Punkt 2): Walidacja zakresu (Math.Clamp) ---
+                // Sprawdzamy zakres tylko jeśli Min/Max są zdefiniowane w Configu
+                if (device.Config.Min.HasValue && device.Config.Max.HasValue)
+                {
+                    val = Math.Clamp(val, device.Config.Min.Value, device.Config.Max.Value);
+                }
+
                 double oldValue = device.State.Value ?? 0;
                 if (Math.Abs(oldValue - newValue.Value) > 0.001)
                 {
@@ -186,11 +196,14 @@ namespace IO_projekt_symulator.Server.Services
             // Wyślij powiadomienie tylko jeśli coś się zmieniło
             if (changed)
             {
-                // UWAGA: Tutaj wysyłamy teraz cały obiekt stanu lub wartość, zależnie jak umówiliście się z frontendem.
-                // Dla uproszczenia wysyłamy nową wartość, ale frontend może oczekiwać całego obiektu.
-                // Jeśli frontend nasłuchuje (id, value), to zostawiamy tak:
-                if (newValue.HasValue)
-                    _hubContext.Clients.All.SendAsync("UpdateReceived", device.Id, newValue.Value);
+                // Wysyłamy powiadomienie SignalR
+                if (device.State.Value.HasValue)
+                {
+                    _hubContext.Clients.All.SendAsync("UpdateReceived", device.Id, device.State.Value.Value);
+                }
+
+                // --- POPRAWKA (Punkt 4): Zapisujemy natychmiast po aktualizacji ---
+                SaveData();
             }
 
             return device;

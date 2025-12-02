@@ -152,7 +152,16 @@ namespace IO_projekt_symulator.Server.Services
 
         public bool RemoveDevice(Guid id)
         {
-            return _devices.TryRemove(id, out _);
+            // Próbujemy usunąć z pamięci RAM
+            var removed = _devices.TryRemove(id, out _);
+
+            // JEŚLI usunięto z RAMu, to NATYCHMIAST zapisz to do pliku!
+            if (removed)
+            {
+                SaveData(); // <--- TEGO PRAWDOPODOBNIE CI BRAKUJE
+            }
+
+            return removed;
         }
 
         

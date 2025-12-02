@@ -1,92 +1,38 @@
 [
   {
-    "id": "88888888-8888-8888-8888-888888888888",
-    "name": "Zu\u017Cycie Pr\u0105du (Licznik)",
+    "id": "22222222-2222-2222-2222-222222222222",
+    "name": "Termometr Zewn\u0119trzny",
     "type": "sensor",
     "state": {
-      "value": 449.9,
-      "unit": "W"
-    },
-    "config": {
-      "min": 0,
-      "max": 5000,
-      "step": 10,
-      "readonly": true
-    },
-    "location": "Gara\u017C",
-    "description": "Bie\u017C\u0105ce zu\u017Cycie energii domu",
-    "createdAt": "2025-01-01T00:00:00Z"
-  },
-  {
-    "id": "77777777-7777-7777-7777-777777777777",
-    "name": "Ekspres do Kawy",
-    "type": "switch",
-    "state": {
-      "value": 0,
-      "unit": null
-    },
-    "config": {
-      "min": 0,
-      "max": 1,
-      "step": 1,
-      "readonly": false
-    },
-    "location": "Kuchnia",
-    "description": "Smart Plug pod\u0142\u0105czony do ekspresu",
-    "createdAt": "2025-01-15T07:00:00Z"
-  },
-  {
-    "id": "66666666-6666-6666-6666-666666666666",
-    "name": "Wilgotno\u015B\u0107 \u0141azienka",
-    "type": "sensor",
-    "state": {
-      "value": 64.3,
-      "unit": "%"
-    },
-    "config": {
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "readonly": true
-    },
-    "location": "\u0141azienka",
-    "description": "Czujnik wilgotno\u015Bci powietrza",
-    "createdAt": "2025-01-10T09:00:00Z"
-  },
-  {
-    "id": "55555555-5555-5555-5555-555555555555",
-    "name": "Stacja Pogodowa",
-    "type": "sensor",
-    "state": {
-      "value": -2.4,
+      "value": 13.1,
       "unit": "\u00B0C"
     },
     "config": {
-      "min": -40,
+      "min": -30,
       "max": 50,
       "step": 0.1,
       "readonly": true
     },
-    "location": "Ogr\u00F3d",
-    "description": "Czujnik zewn\u0119trzny p\u00F3\u0142nocny",
-    "createdAt": "2025-01-01T12:00:00Z"
+    "location": "Taras",
+    "description": "Czujnik temperatury na zewn\u0105trz",
+    "createdAt": "2025-01-01T12:05:00Z"
   },
   {
-    "id": "44444444-4444-4444-4444-444444444444",
-    "name": "Termometr Wewn\u0119trzny",
-    "type": "sensor",
+    "id": "11111111-1111-1111-1111-111111111111",
+    "name": "Rolety Salon",
+    "type": "slider",
     "state": {
-      "value": 21.7,
-      "unit": "\u00B0C"
+      "value": 70,
+      "unit": null
     },
     "config": {
-      "min": 15,
-      "max": 30,
-      "step": 0.1,
-      "readonly": true
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "readonly": false
     },
     "location": "Salon",
-    "description": "Czujnik przy termostacie",
+    "description": "Rolety automatyczne przy oknie balkonowym",
     "createdAt": "2025-01-01T12:00:00Z"
   },
   {
@@ -108,40 +54,94 @@
     "createdAt": "2025-01-05T08:15:00Z"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111111",
-    "name": "Rolety Salon",
-    "type": "slider",
-    "state": {
-      "value": 70,
-      "unit": null
-    },
-    "config": {
-      "min": 0,
-      "max": 100,
-      "step": 10,
-      "readonly": false
-    },
-    "location": "Salon",
-    "description": "Rolety automatyczne przy oknie balkonowym",
-    "createdAt": "2025-01-01T12:00:00Z"
-  },
-  {
-    "id": "22222222-2222-2222-2222-222222222222",
-    "name": "Termometr Zewn\u0119trzny",
+    "id": "44444444-4444-4444-4444-444444444444",
+    "name": "Termometr Wewn\u0119trzny",
     "type": "sensor",
     "state": {
-      "value": 12.1,
+      "value": 20.9,
       "unit": "\u00B0C"
     },
     "config": {
-      "min": -30,
+      "min": 15,
+      "max": 30,
+      "step": 0.1,
+      "readonly": true
+    },
+    "location": "Salon",
+    "description": "Czujnik przy termostacie",
+    "createdAt": "2025-01-01T12:00:00Z"
+  },
+  {
+    "id": "55555555-5555-5555-5555-555555555555",
+    "name": "Stacja Pogodowa",
+    "type": "sensor",
+    "state": {
+      "value": -1.5,
+      "unit": "\u00B0C"
+    },
+    "config": {
+      "min": -40,
       "max": 50,
       "step": 0.1,
       "readonly": true
     },
-    "location": "Taras",
-    "description": "Czujnik temperatury na zewn\u0105trz",
-    "createdAt": "2025-01-01T12:05:00Z"
+    "location": "Ogr\u00F3d",
+    "description": "Czujnik zewn\u0119trzny p\u00F3\u0142nocny",
+    "createdAt": "2025-01-01T12:00:00Z"
+  },
+  {
+    "id": "66666666-6666-6666-6666-666666666666",
+    "name": "Wilgotno\u015B\u0107 \u0141azienka",
+    "type": "sensor",
+    "state": {
+      "value": 65.2,
+      "unit": "%"
+    },
+    "config": {
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "readonly": true
+    },
+    "location": "\u0141azienka",
+    "description": "Czujnik wilgotno\u015Bci powietrza",
+    "createdAt": "2025-01-10T09:00:00Z"
+  },
+  {
+    "id": "77777777-7777-7777-7777-777777777777",
+    "name": "Ekspres do Kawy",
+    "type": "switch",
+    "state": {
+      "value": 0,
+      "unit": null
+    },
+    "config": {
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "readonly": false
+    },
+    "location": "Kuchnia",
+    "description": "Smart Plug pod\u0142\u0105czony do ekspresu",
+    "createdAt": "2025-01-15T07:00:00Z"
+  },
+  {
+    "id": "88888888-8888-8888-8888-888888888888",
+    "name": "Zu\u017Cycie Pr\u0105du (Licznik)",
+    "type": "sensor",
+    "state": {
+      "value": 452.3,
+      "unit": "W"
+    },
+    "config": {
+      "min": 0,
+      "max": 5000,
+      "step": 10,
+      "readonly": true
+    },
+    "location": "Gara\u017C",
+    "description": "Bie\u017C\u0105ce zu\u017Cycie energii domu",
+    "createdAt": "2025-01-01T00:00:00Z"
   },
   {
     "id": "11111111-1111-1111-1111-111111111112",

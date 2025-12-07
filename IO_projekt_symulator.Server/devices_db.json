@@ -4,7 +4,7 @@
     "name": "Termometr Zewn\u0119trzny",
     "type": "sensor",
     "state": {
-      "value": 14.6,
+      "value": 14.2,
       "unit": "\u00B0C"
     },
     "config": {
@@ -58,7 +58,7 @@
     "name": "Termometr Wewn\u0119trzny",
     "type": "sensor",
     "state": {
-      "value": 22.4,
+      "value": 17.6,
       "unit": "\u00B0C"
     },
     "config": {
@@ -76,7 +76,7 @@
     "name": "Stacja Pogodowa",
     "type": "sensor",
     "state": {
-      "value": -2.5,
+      "value": -5.2,
       "unit": "\u00B0C"
     },
     "config": {
@@ -94,7 +94,7 @@
     "name": "Wilgotno\u015B\u0107 \u0141azienka",
     "type": "sensor",
     "state": {
-      "value": 64.4,
+      "value": 66.7,
       "unit": "%"
     },
     "config": {
@@ -130,7 +130,7 @@
     "name": "Zu\u017Cycie Pr\u0105du (Licznik)",
     "type": "sensor",
     "state": {
-      "value": 453.7,
+      "value": 451.7,
       "unit": "W"
     },
     "config": {

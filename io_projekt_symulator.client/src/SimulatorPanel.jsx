@@ -8,8 +8,7 @@ import DeviceCard from "./components/DeviceCard";
 import CreateDeviceModal from "./components/CreateDeviceModal";
 import DeviceControlModal from "./components/DeviceControlModal";
 
-
-function App() {
+function SimulatorPanel() {
 
     // State for modals and their functions
     const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -185,4 +184,4 @@ function App() {
     )
 }
 
-export default App
+export default SimulatorPanel

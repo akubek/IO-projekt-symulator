@@ -1,6 +1,7 @@
 ﻿using IO_projekt_symulator.Server.Models;
 using IO_projekt_symulator.Server.Services;
 using Microsoft.AspNetCore.Mvc;
+using IO_projekt_symulator.Server.DTOs; // <--- Dodajemy ten using, żeby widział folder DTOs
 
 using System.ComponentModel.DataAnnotations;
 
@@ -77,51 +78,7 @@ namespace IO_projekt_symulator.Server.Controllers
         }
     }
 
-    // --- NOWE KLASY DTO ---
-
-    /// <summary>
-    /// Dane, których oczekujemy od frontendu przy TWORZENIU urządzenia
-    /// </summary>
    
-    public class CreateDeviceDto
-    {
-        [Required]
-        public string Name { get; set; } = string.Empty;
-
-        [Required]
-        public string Type { get; set; } = string.Empty;
-
-        public string? Location { get; set; }
-        public string? Description { get; set; }
-
-        // Teraz przyjmujemy całe obiekty, a nie generujemy ich sami
-        public DeviceStateDto? State { get; set; }
-        public DeviceConfigDto? Config { get; set; }
-    }
-
-    // 2. DTO do AKTUALIZACJI stanu (value + unit)
-    public class UpdateStateDto
-    {
-        // Frontend wysyła: { "value": 123, "unit": "C" }
-        // Używamy nullable (double?), bo frontend może czasem wysłać tylko jedną wartość
-        public double? Value { get; set; }
-        public string? Unit { get; set; }
-    }
-
-    // Klasy pomocnicze (żeby pasowały do JSON-a frontendu)
-    public class DeviceStateDto
-    {
-        public double? Value { get; set; }
-        public string? Unit { get; set; }
-    }
-
-    public class DeviceConfigDto
-    {
-        public bool Readonly { get; set; }
-        public double? Min { get; set; }
-        public double? Max { get; set; }
-        public double? Step { get; set; }
-    }
 }
 
 /*

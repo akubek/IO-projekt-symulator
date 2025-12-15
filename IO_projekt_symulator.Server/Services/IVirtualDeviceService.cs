@@ -1,5 +1,6 @@
 ﻿using IO_projekt_symulator.Server.Controllers;
 using IO_projekt_symulator.Server.Models;
+using IO_projekt_symulator.Server.DTOs; // <--- Dodajemy ten using, żeby widział folder DTOs
 
 namespace IO_projekt_symulator.Server.Services
 {

@@ -116,7 +116,7 @@ function SimulatorPanel() {
     const handleMalfunctionUpdate = (device, state) => {
         handleMalfunctionMutation.mutate({
             id: device.id,
-            state: { malfunction: state }
+            state: { malfunctioning: state }
         });
     };
 

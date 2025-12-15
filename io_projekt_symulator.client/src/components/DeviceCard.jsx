@@ -4,7 +4,7 @@ import Card from "@mui/material/Card";
 import Badge from "@mui/material/Badge";
 import Switch from "@mui/material/Switch";
 import Slider from "@mui/material/Slider";
-import { Power, Gauge, Activity, MapPin } from "lucide-react";
+import { Power, Gauge, Activity, MapPin, AlertTriangle } from "lucide-react";
 import clsx from "clsx";
 
 const deviceTypeConfig = {
@@ -64,14 +64,28 @@ export default function DeviceCard({ device, onSelect, onUpdate }) {
                 onClick={onSelect}
             >
                 {/* Header */}
-                <div className={clsx("p-6 border-b", config.bgLight)}>
+                <div className={clsx("p-6 border-b", config.bgLight, device.malfunctioning && "bg-red-50")}>
                     <div className="flex items-start justify-between mb-4">
-                        <div className={clsx("w-12 h-12 rounded-xl bg-gradient-to-br shadow-lg flex items-center justify-center", config.color)}>
-                            <Icon className="w-6 h-6 text-white" />
+                        <div className={clsx(
+                            "w-12 h-12 rounded-xl bg-gradient-to-br shadow-lg flex items-center justify-center",
+                            device.malfunctioning ? "from-red-500 to-red-600" : config.color
+                        )}>
+                            {device.malfunctioning ? (
+                                <AlertTriangle className="w-6 h-6 text-white" />
+                            ) : (
+                                <Icon className="w-6 h-6 text-white" />
+                            )}
                         </div>
-                        <Badge variant="secondary" className={clsx(config.bgLight, config.textColor, "font-medium")}>
-                            {device.type.toUpperCase()}
-                        </Badge>
+                        <div className="flex flex-col gap-2 items-end">
+                            <Badge variant="secondary" className={clsx(config.bgLight, config.textColor, "font-medium")}>
+                                {device.type.toUpperCase()}
+                            </Badge>
+                            {device.malfunctioning && (
+                                <Badge variant="destructive" className="bg-red-100 text-red-700 border-red-200">
+                                    MALFUNCTION
+                                </Badge>
+                            )}
+                        </div>
                     </div>
                     <h3 className="text-lg font-bold text-slate-900 mb-1">{device.name}</h3>
                     {device.location && (
@@ -89,12 +103,15 @@ export default function DeviceCard({ device, onSelect, onUpdate }) {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-2xl font-bold text-slate-900">{isOn ? 'ON' : 'OFF'}</p>
-                                <p className="text-sm text-slate-500 mt-1">Quick toggle available</p>
+                                <p className="text-sm text-slate-500 mt-1">
+                                    {device.malfunctioning ? 'Device malfunctioning' : 'Quick toggle available'}
+                                </p>
                             </div>
                             <div onClick={handleQuickToggle}>
                                 <Switch
                                     checked={isOn}
                                     className="scale-125"
+                                    disabled={device.malfunctioning}
                                 />
                             </div>
                         </div>

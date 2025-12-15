@@ -70,6 +70,21 @@ function SimulatorPanel() {
         },
     });
 
+    const handleMalfunctionMutation = useMutation({
+        mutationFn: async({ id, state }) => {
+            const response = await fetch(`/api/devices/${id}/malfunction`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(state),
+            });
+            if (!response.ok) { throw new Error("Malfunction toggle failed"); }
+            return response.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['devices'] });
+        },
+    });
+
     // Mutation for deleting the existing device through API
     const deleteDeviceMutation = useMutation({
         mutationFn: async (id) => {
@@ -95,6 +110,13 @@ function SimulatorPanel() {
         updateDeviceMutation.mutate({
             id: device.id,
             data: { value: newVal }
+        });
+    };
+
+    const handleMalfunctionUpdate = (device, state) => {
+        handleMalfunctionMutation.mutate({
+            id: device.id,
+            state: { malfunction: state }
         });
     };
 
@@ -179,6 +201,7 @@ function SimulatorPanel() {
                 onDelete={() => deleteDeviceMutation.mutate(selectedDevice.id)}
                 isUpdating={updateDeviceMutation.isPending}
                 isDeleting={deleteDeviceMutation.isPending}
+                handleMalfunction={handleMalfunctionUpdate}
             />
         </div>
     )

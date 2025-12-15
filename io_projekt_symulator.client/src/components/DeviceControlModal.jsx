@@ -11,7 +11,7 @@ import TextField from "@mui/material/TextField";
 import FormLabel from "@mui/material/FormLabel";
 import Badge from "@mui/material/Badge";
 import Divider from "@mui/material/Divider";
-import { Power, Gauge, Activity, MapPin, Trash2, Info } from "lucide-react";
+import { Power, Gauge, Activity, MapPin, Trash2, Info, AlertTriangle } from "lucide-react";
 import clsx from "clsx";
 
 
@@ -21,7 +21,7 @@ const deviceTypeConfig = {
     sensor: { icon: Activity, color: "from-green-500 to-green-600", bgLight: "bg-green-50", textColor: "text-green-700" }
 };
 
-export default function DeviceControlModal({ device, open, onClose, onUpdate, onDelete, isUpdating, isDeleting }) {
+export default function DeviceControlModal({ device, open, onClose, onUpdate, onDelete, isUpdating, isDeleting, handleMalfunction }) {
 
     // local state for device value and delete confirmation dialog state
     const [localValue, setLocalValue] = useState(0);
@@ -42,21 +42,32 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
     // handlers for different device types
 
     const handleToggle = (checked) => {
+        if (device.malfunctioning) return;
         const newValue = checked ? 1 : 0;
         setLocalValue(newValue);
         onUpdate(device, newValue);
     };
 
     const handleSliderChange = (value) => {
-        setLocalValue(value);
+        if (!device.malfunctioning) {
+            setLocalValue(value);
+        }
     };
 
     const handleSliderCommit = () => {
-        onUpdate(device, Number(localValue) );
+        if (!device.malfunctioning) {
+            onUpdate(device, Number(localValue));
+        }
     };
 
     const handleSensorUpdate = () => {
-        onUpdate(device, Number(localValue) );
+        if (!device.malfunctioning) {
+            onUpdate(device, Number(localValue));
+        }
+    };
+
+    const handleToggleMalfunction = () => {
+        handleMalfunction(device, !device.malfunctioning);
     };
 
     const handleDelete = () => {
@@ -66,11 +77,19 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
 
     return (
         <>
-            <Dialog open={open}>
+            <Dialog open={open} onOpenChange={onClose}>
                 <DialogContent className="max-w-lg">
+                    <DialogHeader>
                         <div className="flex items-center gap-3 mb-2">
-                            <div className={clsx("w-12 h-12 rounded-xl bg-gradient-to-br shadow-lg flex items-center justify-center", config.color)}>
-                                <Icon className="w-6 h-6 text-white" />
+                            <div className={clsx(
+                                "w-12 h-12 rounded-xl bg-gradient-to-br shadow-lg flex items-center justify-center",
+                                device.malfunctioning ? "from-red-500 to-red-600" : config.color
+                            )}>
+                                {device.malfunctioning ? (
+                                    <AlertTriangle className="w-6 h-6 text-white" />
+                                ) : (
+                                    <Icon className="w-6 h-6 text-white" />
+                                )}
                             </div>
                             <div className="flex-1">
                                 <DialogTitle className="text-xl">{device.name}</DialogTitle>
@@ -81,15 +100,57 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                                     </div>
                                 )}
                             </div>
-                            <Badge variant="secondary" className={clsx(config.bgLight, config.textColor)}>
-                                {device.type.toUpperCase()}
-                            </Badge>
+                            <div className="flex flex-col gap-2 items-end">
+                                <Badge variant="secondary" className={clsx(config.bgLight, config.textColor)}>
+                                    {device.type.toUpperCase()}
+                                </Badge>
+                                {device.malfunctioning && (
+                                    <Badge variant="destructive" className="bg-red-100 text-red-700 border-red-200">
+                                        MALFUNCTION
+                                    </Badge>
+                                )}
+                            </div>
                         </div>
                         {device.description && (
-                            <DialogContentText className="text-base">{device.description}</DialogContentText>
+                            <DialogDescription className="text-base">{device.description}</DialogDescription>
                         )}
+                    </DialogHeader>
 
-                    <Divider />
+                    <Separator />
+
+                    {/* Malfunction Control */}
+                    {device.malfunctioning && (
+                        <div className="mx-6 mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+                            <div className="flex items-center gap-2 text-red-800 mb-2">
+                                <AlertTriangle className="w-5 h-5" />
+                                <span className="font-semibold">Device Malfunction Active</span>
+                            </div>
+                            <p className="text-sm text-red-600 mb-3">
+                                This device is currently malfunctioning and cannot be controlled. Fix the malfunction to restore functionality.
+                            </p>
+                            <Button
+                                onClick={handleToggleMalfunction}
+                                variant="outline"
+                                className="w-full border-red-300 text-red-700 hover:bg-red-100"
+                            >
+                                Fix Malfunction
+                            </Button>
+                        </div>
+                    )}
+
+                    {/* Malfunction Toggle Button */}
+                    {!device.malfunctioning && (
+                        <div className="mx-6 mt-4">
+                            <Button
+                                onClick={handleToggleMalfunction}
+                                variant="outline"
+                                className="w-full border-orange-300 text-orange-700 hover:bg-orange-50"
+                            >
+                                <AlertTriangle className="w-4 h-4 mr-2" />
+                                Simulate Malfunction
+                            </Button>
+                        </div>
+                    )}
 
                     {/* Control Section */}
                     <div className="space-y-6 py-4">
@@ -98,7 +159,7 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                             <div className={clsx("p-6 rounded-xl", config.bgLight)}>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <FormLabel className="text-lg font-semibold">Device State</FormLabel>
+                                        <Label className="text-lg font-semibold">Device State</Label>
                                         <p className="text-sm text-slate-600 mt-1">Toggle the device on or off</p>
                                     </div>
                                     <div className="flex items-center gap-3">
@@ -107,9 +168,9 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                                         </span>
                                         <Switch
                                             checked={localValue > 0}
-                                            onChange={(e, checked) => handleToggle(checked)}
+                                            onCheckedChange={handleToggle}
                                             className="scale-125"
-                                            disabled={isUpdating}
+                                            disabled={isUpdating || device.malfunctioning}
                                         />
                                     </div>
                                 </div>
@@ -122,7 +183,7 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                                 <div className="space-y-4">
                                     <div className="flex items-end justify-between">
                                         <div>
-                                            <FormLabel className="text-lg font-semibold">Control Value</FormLabel>
+                                            <Label className="text-lg font-semibold">Control Value</Label>
                                             <p className="text-sm text-slate-600 mt-1">
                                                 Range: {device.config?.min || 0} - {device.config?.max || 100}
                                             </p>
@@ -131,12 +192,12 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                                     </div>
                                     <Slider
                                         value={[localValue]}
-                                        onChange={(e, value) => handleSliderChange(value)}
-                                        onChangeCommitted={handleSliderCommit}
+                                        onValueChange={handleSliderChange}
+                                        onValueCommit={handleSliderCommit}
                                         min={device.config?.min || 0}
                                         max={device.config?.max || 100}
                                         step={device.config?.step || 1}
-                                        disabled={isUpdating}
+                                        disabled={isUpdating || device.malfunctioning}
                                         className="cursor-pointer"
                                     />
                                 </div>
@@ -148,14 +209,14 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                             <div className={clsx("p-6 rounded-xl", config.bgLight)}>
                                 <div className="space-y-4">
                                     <div>
-                                        <FormLabel className="text-lg font-semibold">Sensor Reading</FormLabel>
+                                        <Label className="text-lg font-semibold">Sensor Reading</Label>
                                         <p className="text-sm text-slate-600 mt-1">
                                             Simulate sensor value (Range: {device.config?.min || 0} - {device.config?.max || 100})
                                         </p>
                                     </div>
                                     <div className="flex items-end gap-3">
                                         <div className="flex-1">
-                                            <TextField
+                                            <Input
                                                 type="number"
                                                 value={localValue}
                                                 onChange={(e) => setLocalValue(e.target.value)}
@@ -190,7 +251,7 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                             <div className="grid grid-cols-2 gap-2 text-sm ml-6">
                                 <div>
                                     <span className="text-slate-500">Device ID:</span>
-                                    <p className="font-mono text-xs text-slate-700">{device.id}</p>
+                                    <p className="font-mono text-xs text-slate-700">{device.id.slice(0, 8)}...</p>
                                 </div>
                                 <div>
                                     <span className="text-slate-500">Created:</span>
@@ -200,9 +261,9 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                         </div>
                     </div>
 
-                    <Divider />
+                    <Separator />
 
-                    <DialogActions className="flex justify-between sm:justify-between">
+                    <DialogFooter className="flex justify-between sm:justify-between">
                         <Button
                             variant="destructive"
                             onClick={() => setShowDeleteConfirm(true)}
@@ -215,7 +276,7 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                         <Button variant="outline" onClick={onClose}>
                             Close
                         </Button>
-                    </DialogActions>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 

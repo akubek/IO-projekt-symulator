@@ -35,6 +35,9 @@ namespace IO_projekt_symulator.Server.Models
 
         [JsonPropertyName("createdAt")]
         public DateTime CreatedAt { get; set; }
+
+        [JsonPropertyName("malfunctioning")]
+        public bool Malfunctioning { get; set; } = false;
     }
 
     /// <summary>
@@ -47,6 +50,8 @@ namespace IO_projekt_symulator.Server.Models
 
         [JsonPropertyName("unit")]
         public string? Unit { get; set; }
+
+       
     }
 
     /// <summary>
@@ -65,5 +70,7 @@ namespace IO_projekt_symulator.Server.Models
 
         [JsonPropertyName("readonly")]
         public bool Readonly { get; set; } = false;
+
+      
     }
 }

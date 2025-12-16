@@ -14,7 +14,8 @@ namespace IO_projekt_symulator.Server.DTOs
             public string? Description { get; set; }
             public DeviceStateDto? State { get; set; }
             public DeviceConfigDto? Config { get; set; }
-        }
+            public bool Malfunctioning { get; set; } = false;
+    }
 
         public class DeviceStateDto
         {

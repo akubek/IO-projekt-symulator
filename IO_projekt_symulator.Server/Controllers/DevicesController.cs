@@ -55,7 +55,7 @@ namespace IO_projekt_symulator.Server.Controllers
             _logger.LogInformation($"Otrzymano aktualizację dla {id}");
 
             // Przekazujemy Value i Unit do serwisu
-            var updatedDevice = _deviceService.UpdateDeviceState(id, dto.Value, dto.Unit);
+            var updatedDevice = _deviceService.UpdateDeviceState(id, dto.Value, dto.Unit, bypassReadOnly: true);
 
             if (updatedDevice == null)
             {
@@ -66,7 +66,6 @@ namespace IO_projekt_symulator.Server.Controllers
         }
 
         // DELETE /api/devices/{id}
-        // Endpoint do usuwania urządzeń (dla Osoby 5)
         [HttpDelete("{id}")]
         public IActionResult DeleteDevice(Guid id)
         {
@@ -75,6 +74,20 @@ namespace IO_projekt_symulator.Server.Controllers
                 return NoContent(); // Sukces, brak treści
             }
             return NotFound();
+        }
+
+
+        [HttpPost("{id}/malfunction")]
+        public IActionResult SetMalfunction(Guid id, [FromBody] MalfunctionDto dto)
+        {
+            var success = _deviceService.SetMalfunctionState(id, dto.Malfunctioning);
+
+            if (!success)
+            {
+                return NotFound($"Nie znaleziono urządzenia o ID: {id}");
+            }
+
+            return Ok(new { message = $"Stan awarii urządzenia {id} ustawiony na: {dto.Malfunctioning}" });
         }
     }
 

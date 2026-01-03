@@ -4,7 +4,7 @@
     "name": "Zu\u017Cycie Pr\u0105du (Licznik)",
     "type": "sensor",
     "state": {
-      "value": 450.1,
+      "value": 0.8,
       "unit": "W"
     },
     "config": {
@@ -16,7 +16,7 @@
     "location": "Gara\u017C",
     "description": "Bie\u017C\u0105ce zu\u017Cycie energii domu",
     "createdAt": "2025-01-01T00:00:00Z",
-    "malfunctioning": false
+    "malfunctioning": true
   },
   {
     "id": "77777777-7777-7777-7777-777777777777",
@@ -42,7 +42,7 @@
     "name": "Wilgotno\u015B\u0107 \u0141azienka",
     "type": "sensor",
     "state": {
-      "value": 66.5,
+      "value": 98.3,
       "unit": "%"
     },
     "config": {
@@ -61,7 +61,7 @@
     "name": "Stacja Pogodowa",
     "type": "sensor",
     "state": {
-      "value": 5.9,
+      "value": 23.3,
       "unit": "\u00B0C"
     },
     "config": {
@@ -80,7 +80,7 @@
     "name": "Termometr Wewn\u0119trzny",
     "type": "sensor",
     "state": {
-      "value": 23.5,
+      "value": 31.6,
       "unit": "\u00B0C"
     },
     "config": {
@@ -99,7 +99,7 @@
     "name": "Rolety Balkonowe",
     "type": "slider",
     "state": {
-      "value": 0,
+      "value": 100,
       "unit": null
     },
     "config": {
@@ -111,14 +111,14 @@
     "location": "Salon",
     "description": "Automatyczne rolety zewn\u0119trzne",
     "createdAt": "2025-01-05T08:15:00Z",
-    "malfunctioning": false
+    "malfunctioning": true
   },
   {
     "id": "11111111-1111-1111-1111-111111111111",
     "name": "Rolety Salon",
     "type": "slider",
     "state": {
-      "value": 70,
+      "value": 30,
       "unit": null
     },
     "config": {
@@ -137,7 +137,7 @@
     "name": "Termometr Zewn\u0119trzny",
     "type": "sensor",
     "state": {
-      "value": 15.5,
+      "value": 26.1,
       "unit": "\u00B0C"
     },
     "config": {
@@ -156,7 +156,7 @@
     "name": "G\u0142\u00F3wne \u015Awiat\u0142o",
     "type": "switch",
     "state": {
-      "value": 1,
+      "value": 0,
       "unit": null
     },
     "config": {

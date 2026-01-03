@@ -40,6 +40,7 @@ export default function DeviceCard({ device, onSelect, onUpdate }) {
 
     //handler for quick toggle on a switch device
     const handleQuickToggle = (e) => {
+        if (device.malfunctioning) return;
         e.stopPropagation();
         if (device.type === 'switch') {
             onUpdate(device, isOn ? 0 : 1);

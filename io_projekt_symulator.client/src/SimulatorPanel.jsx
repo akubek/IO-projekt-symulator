@@ -28,12 +28,19 @@ function SimulatorPanel() {
     // Polling effect to refresh device list every 5 seconds
     useEffect(() => {
         // do not poll if modal is open
-        if (selectedDevice || createModalOpen) return;
+        if (createModalOpen) return;
+        // refresh selected device
+        else if (selectedDevice) { 
+            const updated = devices.find(d => d.id === selectedDevice.id);
+            if (updated) {
+                setSelectedDevice(updated);
+            }
+        }
         const id = setInterval(() => {
             queryClient.invalidateQueries({ queryKey: ['devices'] });
         }, 5000);
         return () => clearInterval(id);
-    }, [selectedDevice, createModalOpen, queryClient]);
+    }, [devices, selectedDevice, createModalOpen, queryClient]);
 
 
     // Mutations for creating the device type object through API
@@ -107,6 +114,7 @@ function SimulatorPanel() {
 
     // Handler for device state updates
     const handleDeviceUpdate = (device, newVal) => {
+        if (!(newVal < device.config?.max && newVal > device.config?.min)) newVal = (newVal > device.config?.max) ? device.config?.max : device.config?.min;
         updateDeviceMutation.mutate({
             id: device.id,
             data: { value: newVal }

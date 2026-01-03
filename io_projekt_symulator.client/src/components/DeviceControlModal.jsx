@@ -25,12 +25,14 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
 
     // local state for device value and delete confirmation dialog state
     const [localValue, setLocalValue] = useState(0);
+    const [localMalfunction, setLocalMalfunction] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // sync local value with device state when device changes
     useEffect(() => {
         if (device) {
             setLocalValue(device.state?.value || 0);
+            setLocalMalfunction(device.malfunctioning || false)
         }
     }, [device]);
     if (!device) return null;
@@ -42,32 +44,34 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
     // handlers for different device types
 
     const handleToggle = (checked) => {
-        if (device.malfunctioning) return;
+        if (localMalfunction) return;
         const newValue = checked ? 1 : 0;
         setLocalValue(newValue);
         onUpdate(device, newValue);
     };
 
     const handleSliderChange = (value) => {
-        if (!device.malfunctioning) {
+        if (!localMalfunction) {
             setLocalValue(value);
         }
     };
 
     const handleSliderCommit = () => {
-        if (!device.malfunctioning) {
+        if (!localMalfunction) {
             onUpdate(device, Number(localValue));
         }
     };
 
     const handleSensorUpdate = () => {
-        if (!device.malfunctioning) {
+        if (!localMalfunction) {
             onUpdate(device, Number(localValue));
         }
     };
 
     const handleToggleMalfunction = () => {
-        handleMalfunction(device, !device.malfunctioning);
+        const newState = !localMalfunction;
+        setLocalMalfunction(newState);
+        handleMalfunction(device, newState);
     };
 
     const handleDelete = () => {
@@ -77,9 +81,8 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
 
     return (
         <>
-            <Dialog open={open} onOpenChange={onClose}>
+            <Dialog open={open}>
                 <DialogContent className="max-w-lg">
-                    <DialogHeader>
                         <div className="flex items-center gap-3 mb-2">
                             <div className={clsx(
                                 "w-12 h-12 rounded-xl bg-gradient-to-br shadow-lg flex items-center justify-center",
@@ -112,11 +115,9 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                             </div>
                         </div>
                         {device.description && (
-                            <DialogDescription className="text-base">{device.description}</DialogDescription>
+                            <DialogContentText className="text-base">{device.description}</DialogContentText>
                         )}
-                    </DialogHeader>
-
-                    <Separator />
+                    <Divider />
 
                     {/* Malfunction Control */}
                     {device.malfunctioning && (
@@ -128,11 +129,7 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                             <p className="text-sm text-red-600 mb-3">
                                 This device is currently malfunctioning and cannot be controlled. Fix the malfunction to restore functionality.
                             </p>
-                            <Button
-                                onClick={handleToggleMalfunction}
-                                variant="outline"
-                                className="w-full border-red-300 text-red-700 hover:bg-red-100"
-                            >
+                            <Button onClick={handleToggleMalfunction} variant="outline"className="w-full border-red-300 text-red-700 hover:bg-red-100">
                                 Fix Malfunction
                             </Button>
                         </div>
@@ -159,7 +156,7 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                             <div className={clsx("p-6 rounded-xl", config.bgLight)}>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <Label className="text-lg font-semibold">Device State</Label>
+                                        <FormLabel className="text-lg font-semibold">Device State</FormLabel>
                                         <p className="text-sm text-slate-600 mt-1">Toggle the device on or off</p>
                                     </div>
                                     <div className="flex items-center gap-3">
@@ -168,9 +165,9 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                                         </span>
                                         <Switch
                                             checked={localValue > 0}
-                                            onCheckedChange={handleToggle}
+                                            onChange={(e, checked) => handleToggle(checked)}
                                             className="scale-125"
-                                            disabled={isUpdating || device.malfunctioning}
+                                            disabled={isUpdating || localMalfunction}
                                         />
                                     </div>
                                 </div>
@@ -183,7 +180,7 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                                 <div className="space-y-4">
                                     <div className="flex items-end justify-between">
                                         <div>
-                                            <Label className="text-lg font-semibold">Control Value</Label>
+                                            <FormLabel className="text-lg font-semibold">Control Value</FormLabel>
                                             <p className="text-sm text-slate-600 mt-1">
                                                 Range: {device.config?.min || 0} - {device.config?.max || 100}
                                             </p>
@@ -192,12 +189,12 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                                     </div>
                                     <Slider
                                         value={[localValue]}
-                                        onValueChange={handleSliderChange}
-                                        onValueCommit={handleSliderCommit}
+                                        onChange={(e, value) => handleSliderChange(value)}
+                                        onChangeCommitted={handleSliderCommit}
                                         min={device.config?.min || 0}
                                         max={device.config?.max || 100}
                                         step={device.config?.step || 1}
-                                        disabled={isUpdating || device.malfunctioning}
+                                        disabled={isUpdating || localMalfunction}
                                         className="cursor-pointer"
                                     />
                                 </div>
@@ -209,14 +206,14 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                             <div className={clsx("p-6 rounded-xl", config.bgLight)}>
                                 <div className="space-y-4">
                                     <div>
-                                        <Label className="text-lg font-semibold">Sensor Reading</Label>
+                                        <FormLabel className="text-lg font-semibold">Sensor Reading</FormLabel>
                                         <p className="text-sm text-slate-600 mt-1">
                                             Simulate sensor value (Range: {device.config?.min || 0} - {device.config?.max || 100})
                                         </p>
                                     </div>
                                     <div className="flex items-end gap-3">
                                         <div className="flex-1">
-                                            <Input
+                                            <TextField
                                                 type="number"
                                                 value={localValue}
                                                 onChange={(e) => setLocalValue(e.target.value)}
@@ -251,19 +248,25 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                             <div className="grid grid-cols-2 gap-2 text-sm ml-6">
                                 <div>
                                     <span className="text-slate-500">Device ID:</span>
-                                    <p className="font-mono text-xs text-slate-700">{device.id.slice(0, 8)}...</p>
+                                    <p className="font-mono text-xs text-slate-700">{device.id.slice(0, 64)}</p>
                                 </div>
                                 <div>
                                     <span className="text-slate-500">Created:</span>
-                                    <p className="text-slate-700">{new Date(device.created_date).toLocaleDateString()}</p>
+                                    <p className="text-slate-700">{new Date(device.createdAt).toLocaleString("en-EN", {
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "2-digit",
+                                        hour: "2-digit",
+                                        minute: "2-digit"
+                                    })}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <Separator />
+                    <Divider />
 
-                    <DialogFooter className="flex justify-between sm:justify-between">
+                    <DialogActions className="flex justify-between sm:justify-between">
                         <Button
                             variant="destructive"
                             onClick={() => setShowDeleteConfirm(true)}
@@ -276,7 +279,7 @@ export default function DeviceControlModal({ device, open, onClose, onUpdate, on
                         <Button variant="outline" onClick={onClose}>
                             Close
                         </Button>
-                    </DialogFooter>
+                    </DialogActions>
                 </DialogContent>
             </Dialog>
 

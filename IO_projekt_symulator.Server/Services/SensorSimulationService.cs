@@ -21,37 +21,52 @@ namespace IO_projekt_symulator.Server.Services
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                // Czekamy 10 sekund
-                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+                // Czekamy 5 lub 10 sekund (zależy jak wolisz)
+                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
 
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var deviceService = scope.ServiceProvider.GetRequiredService<IVirtualDeviceService>();
 
-                    // 1. Znajdź wszystkie urządzenia, które są typu 'sensor'
+                    // 1. Sprawdź globalny włącznik symulacji
+                    if (!deviceService.IsSimulationEnabled)
+                    {
+                        continue;
+                    }
+
+                    // 2. Pobierz tylko sensory
                     var sensors = deviceService.GetDevices()
                         .Where(d => d.Type == DeviceType.sensor);
 
                     foreach (var sensor in sensors)
                     {
-                        // 2. Odczytaj aktualną wartość (teraz z 'State.Value')
-                        // Używamy '?? 0', aby bezpiecznie obsłużyć 'null'
-                        double currentTemp = sensor.State.Value ?? 0;
-
-                        // 3. Oblicz nową losową wartość
-                        double change = (rand.NextDouble() - 0.5); // Losowa zmiana +/- 0.5
-                        double newTemp = Math.Round(currentTemp + change, 1);
-                        // Jeśli urządzenie ma zdefiniowane Min i Max, trzymaj się ich!
-                        if (sensor.Config.Min.HasValue && sensor.Config.Max.HasValue)
+                        // 3. --- WAŻNE --- Ignoruj zepsute urządzenia (Malfunction)
+                        if (sensor.Malfunctioning)
                         {
-                            // Math.Clamp obcina wartość, jeśli wyjdzie poza ramy
-                            newTemp = Math.Clamp(newTemp, sensor.Config.Min.Value, sensor.Config.Max.Value);
+                            continue;
                         }
 
-                        // 4. Zaktualizuj stan, omijając zabezpieczenie "readonly"
-                        deviceService.UpdateDeviceState(sensor.Id, newTemp, null,true); // <-- Ustawiamy bypassReadOnly na true
+                        double currentVal = sensor.State.Value ?? 0;
 
-                        _logger.LogInformation($"Symulator zmienil temperature dla '{sensor.Name}' na {newTemp}°C");
+                        // 4. Oblicz nową wartość
+                        double change = (rand.NextDouble() - 0.5);
+                        double newVal = Math.Round(currentVal + change, 1);
+
+                        // Walidacja zakresu (Clamp)
+                        if (sensor.Config.Min.HasValue && sensor.Config.Max.HasValue)
+                        {
+                            newVal = Math.Clamp(newVal, sensor.Config.Min.Value, sensor.Config.Max.Value);
+                        }
+
+                        // 5. Aktualizacja w serwisie
+                        deviceService.UpdateDeviceState(sensor.Id, newVal, null, true);
+
+                        // 6. --- POPRAWKA LOGÓW ---
+                        // Pobieramy jednostkę z urządzenia. Jeśli null, to pusty string.
+                        string unit = sensor.State.Unit ?? "";
+
+                        // Logujemy uniwersalny komunikat
+                        _logger.LogInformation($"[Symulator] '{sensor.Name}': {newVal}{unit}");
                     }
                 }
             }

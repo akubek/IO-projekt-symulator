@@ -244,5 +244,17 @@ namespace IO_projekt_symulator.Server.Services
 
             return true;
         }
+
+        // Domyślnie symulacja działa (true)
+        public bool IsSimulationEnabled { get; set; } = true;
+
+
+
+        public void ToggleSimulation(bool enable)
+        {
+            IsSimulationEnabled = enable;
+            // Opcjonalnie: Powiadom frontend, że symulacja stanęła (żeby przycisk zmienił kolor)
+            _hubContext.Clients.All.SendAsync("SimulationStateChanged", enable);
+        }
     }
 }

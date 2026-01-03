@@ -89,9 +89,21 @@ namespace IO_projekt_symulator.Server.Controllers
 
             return Ok(new { message = $"Stan awarii urządzenia {id} ustawiony na: {dto.Malfunctioning}" });
         }
-    }
 
-   
+
+        // POST /api/devices/simulation
+        // Body: true (włącz) lub false (wyłącz)
+        [HttpPost("simulation")]
+        public IActionResult ToggleSimulation([FromBody] bool enable)
+        {
+            _deviceService.ToggleSimulation(enable);
+
+            var status = enable ? "URUCHOMIONA" : "ZATRZYMANA";
+            _logger.LogInformation($"Symulacja została {status} przez admina.");
+
+            return Ok(new { message = $"Symulacja {status}", isEnabled = enable });
+        }
+    }
 }
 
 /*

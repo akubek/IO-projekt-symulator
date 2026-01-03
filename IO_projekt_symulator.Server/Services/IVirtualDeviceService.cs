@@ -1,5 +1,6 @@
 ﻿using IO_projekt_symulator.Server.Controllers;
 using IO_projekt_symulator.Server.Models;
+using IO_projekt_symulator.Server.DTOs; // <--- Dodajemy ten using, żeby widział folder DTOs
 
 namespace IO_projekt_symulator.Server.Services
 {
@@ -16,5 +17,6 @@ namespace IO_projekt_symulator.Server.Services
 
         // ZMIANA: Dodajemy 'unit' (może być null)
         Device? UpdateDeviceState(Guid id, double? newValue, string? newUnit, bool bypassReadOnly = false);
+        bool SetMalfunctionState(Guid id, bool isMalfunctioning);
     }
 }

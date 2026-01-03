@@ -4,6 +4,7 @@ using IO_projekt_symulator.Server.Models;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 using System.Text.Json;
+using IO_projekt_symulator.Server.DTOs; // <--- Dodajemy ten using, żeby widział folder DTOs
 
 namespace IO_projekt_symulator.Server.Services
 {
@@ -216,6 +217,32 @@ namespace IO_projekt_symulator.Server.Services
             }
 
             return device;
+        }
+
+        // ... inne metody ...
+
+        public bool SetMalfunctionState(Guid id, bool isMalfunctioning)
+        {
+            if (!_devices.TryGetValue(id, out var device)) return false;
+
+            // Aktualizujemy stan w pamięci
+            device.Malfunctioning = isMalfunctioning;
+
+            // 1. Zapisujemy zmianę do pliku (Persistence)
+            SaveData();
+
+            // 2. Powiadamiamy frontend przez SignalR (Real-time update)
+            // Dzięki temu, jak jeden admin kliknie "Simulate Malfunction",
+            // to wszystkim innym od razu zapali się czerwona lampka.
+            // Używamy nazwy zdarzenia "DeviceUpdated" lub specyficznego "MalfunctionChanged"
+            // Tutaj dla uproszczenia wysyłamy sygnał, że urządzenie się zmieniło.
+            // Frontend prawdopodobnie nasłuchuje na zmiany lub odświeży listę.
+
+            // OPCJA A: Jeśli frontend nasłuchuje tylko na 'UpdateReceived' (wartości):
+            // Możemy wysłać nową metodę, np. "MalfunctionUpdate"
+            _hubContext.Clients.All.SendAsync("MalfunctionUpdate", id, isMalfunctioning);
+
+            return true;
         }
     }
 }

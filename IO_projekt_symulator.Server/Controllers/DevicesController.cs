@@ -1,6 +1,7 @@
 ﻿using IO_projekt_symulator.Server.Models;
 using IO_projekt_symulator.Server.Services;
 using Microsoft.AspNetCore.Mvc;
+using IO_projekt_symulator.Server.DTOs; // <--- Dodajemy ten using, żeby widział folder DTOs
 
 using System.ComponentModel.DataAnnotations;
 
@@ -54,7 +55,7 @@ namespace IO_projekt_symulator.Server.Controllers
             _logger.LogInformation($"Otrzymano aktualizację dla {id}");
 
             // Przekazujemy Value i Unit do serwisu
-            var updatedDevice = _deviceService.UpdateDeviceState(id, dto.Value, dto.Unit);
+            var updatedDevice = _deviceService.UpdateDeviceState(id, dto.Value, dto.Unit, bypassReadOnly: true);
 
             if (updatedDevice == null)
             {
@@ -65,7 +66,6 @@ namespace IO_projekt_symulator.Server.Controllers
         }
 
         // DELETE /api/devices/{id}
-        // Endpoint do usuwania urządzeń (dla Osoby 5)
         [HttpDelete("{id}")]
         public IActionResult DeleteDevice(Guid id)
         {
@@ -75,53 +75,23 @@ namespace IO_projekt_symulator.Server.Controllers
             }
             return NotFound();
         }
+
+
+        [HttpPost("{id}/malfunction")]
+        public IActionResult SetMalfunction(Guid id, [FromBody] MalfunctionDto dto)
+        {
+            var success = _deviceService.SetMalfunctionState(id, dto.Malfunctioning);
+
+            if (!success)
+            {
+                return NotFound($"Nie znaleziono urządzenia o ID: {id}");
+            }
+
+            return Ok(new { message = $"Stan awarii urządzenia {id} ustawiony na: {dto.Malfunctioning}" });
+        }
     }
 
-    // --- NOWE KLASY DTO ---
-
-    /// <summary>
-    /// Dane, których oczekujemy od frontendu przy TWORZENIU urządzenia
-    /// </summary>
    
-    public class CreateDeviceDto
-    {
-        [Required]
-        public string Name { get; set; } = string.Empty;
-
-        [Required]
-        public string Type { get; set; } = string.Empty;
-
-        public string? Location { get; set; }
-        public string? Description { get; set; }
-
-        // Teraz przyjmujemy całe obiekty, a nie generujemy ich sami
-        public DeviceStateDto? State { get; set; }
-        public DeviceConfigDto? Config { get; set; }
-    }
-
-    // 2. DTO do AKTUALIZACJI stanu (value + unit)
-    public class UpdateStateDto
-    {
-        // Frontend wysyła: { "value": 123, "unit": "C" }
-        // Używamy nullable (double?), bo frontend może czasem wysłać tylko jedną wartość
-        public double? Value { get; set; }
-        public string? Unit { get; set; }
-    }
-
-    // Klasy pomocnicze (żeby pasowały do JSON-a frontendu)
-    public class DeviceStateDto
-    {
-        public double? Value { get; set; }
-        public string? Unit { get; set; }
-    }
-
-    public class DeviceConfigDto
-    {
-        public bool Readonly { get; set; }
-        public double? Min { get; set; }
-        public double? Max { get; set; }
-        public double? Step { get; set; }
-    }
 }
 
 /*

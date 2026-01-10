@@ -55,12 +55,13 @@ namespace IO_projekt_symulator.Server.Controllers
         {
             _logger.LogInformation($"Otrzymano aktualizację dla {id}");
 
-            var updatedDevice = await _deviceService.UpdateDeviceStateAsync(id, dto.Value, dto.Unit, bypassReadOnly: true);
+            var device = _deviceService.GetDeviceById(id);
+            if (device == null) return NotFound("Device not found.");
 
-            if (updatedDevice == null)
-            {
-                return NotFound("Device not found or readonly.");
-            }
+            if (device.Malfunctioning) return Conflict("Device is malfunctioning.");
+
+            var updatedDevice = await _deviceService.UpdateDeviceStateAsync(id, dto.Value, dto.Unit, bypassReadOnly: true);
+            if (updatedDevice == null) return NotFound("Device not found or readonly.");
 
             return Ok(updatedDevice);
         }

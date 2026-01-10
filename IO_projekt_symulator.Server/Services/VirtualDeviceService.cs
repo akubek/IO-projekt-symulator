@@ -167,6 +167,8 @@ namespace IO_projekt_symulator.Server.Services
         {
             if (!_devices.TryGetValue(id, out var device)) return null;
 
+            if (device.Malfunctioning) return null;
+
             if (device.Config.Readonly && !bypassReadOnly) return null;
 
             // Logika wykrywania zmian (dla SignalR)

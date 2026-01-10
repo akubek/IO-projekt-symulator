@@ -4,7 +4,7 @@
     "name": "Termometr Zewn\u0119trzny",
     "type": "sensor",
     "state": {
-      "value": 34.3,
+      "value": 49.6,
       "unit": "\u00B0C"
     },
     "config": {
@@ -23,8 +23,8 @@
     "name": "Rolety Salon",
     "type": "slider",
     "state": {
-      "value": 30,
-      "unit": null
+      "value": 50,
+      "unit": "null"
     },
     "config": {
       "min": 0,
@@ -42,7 +42,7 @@
     "name": "Rolety Balkonowe",
     "type": "slider",
     "state": {
-      "value": 100,
+      "value": 50,
       "unit": null
     },
     "config": {
@@ -61,7 +61,7 @@
     "name": "Termometr Wewn\u0119trzny",
     "type": "sensor",
     "state": {
-      "value": 23.4,
+      "value": 0,
       "unit": "\u00B0C"
     },
     "config": {
@@ -80,7 +80,7 @@
     "name": "Stacja Pogodowa",
     "type": "sensor",
     "state": {
-      "value": 28.3,
+      "value": 47.9,
       "unit": "\u00B0C"
     },
     "config": {
@@ -99,7 +99,7 @@
     "name": "Wilgotno\u015B\u0107 \u0141azienka",
     "type": "sensor",
     "state": {
-      "value": 56.6,
+      "value": 57.9,
       "unit": "%"
     },
     "config": {
@@ -137,7 +137,7 @@
     "name": "Zu\u017Cycie Pr\u0105du (Licznik)",
     "type": "sensor",
     "state": {
-      "value": 13.7,
+      "value": 7.3,
       "unit": "W"
     },
     "config": {
@@ -156,7 +156,7 @@
     "name": "G\u0142\u00F3wne \u015Awiat\u0142o",
     "type": "switch",
     "state": {
-      "value": 0,
+      "value": 1,
       "unit": null
     },
     "config": {
@@ -175,7 +175,7 @@
     "name": "Lampa Nocna",
     "type": "slider",
     "state": {
-      "value": 45,
+      "value": 16,
       "unit": "%"
     },
     "config": {

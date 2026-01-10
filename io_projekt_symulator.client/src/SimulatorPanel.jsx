@@ -114,7 +114,14 @@ function SimulatorPanel() {
 
     // Handler for device state updates
     const handleDeviceUpdate = (device, newVal) => {
-        if (!(newVal < device.config?.max && newVal > device.config?.min)) newVal = (newVal > device.config?.max) ? device.config?.max : device.config?.min;
+        const min = device.config?.min;
+        const max = device.config?.max;
+
+        if (typeof min === 'number' && typeof max === 'number') {
+            if (newVal < min) newVal = min;
+            if (newVal > max) newVal = max;
+        }
+
         updateDeviceMutation.mutate({
             id: device.id,
             data: { value: newVal }
@@ -127,6 +134,8 @@ function SimulatorPanel() {
             state: { malfunctioning: state }
         });
     };
+
+    const sortedDevices = [...devices].sort((a, b) => String(a.id).localeCompare(String(b.id)));
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
@@ -180,7 +189,7 @@ function SimulatorPanel() {
                         layout
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <AnimatePresence mode="popLayout">
-                            {devices.map((device) => (
+                            {sortedDevices.map((device) => (
                                 <DeviceCard
                                     key={device.id}
                                     device={device}

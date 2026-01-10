@@ -59,7 +59,7 @@ namespace IO_projekt_symulator.Server.Services
                         }
 
                         // 5. Aktualizacja w serwisie
-                        deviceService.UpdateDeviceState(sensor.Id, newVal, null, true);
+                        deviceService.UpdateDeviceStateAsync(sensor.Id, newVal, null, true);
 
                         // 6. --- POPRAWKA LOGÓW ---
                         // Pobieramy jednostkę z urządzenia. Jeśli null, to pusty string.

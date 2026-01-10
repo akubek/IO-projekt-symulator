@@ -1,6 +1,7 @@
 using IO_projekt_symulator.Server.Hubs;
-using MassTransit;
 using IO_projekt_symulator.Server.Consumers;
+using IO_projekt_symulator.Server.Contracts;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,25 +20,37 @@ builder.Services.AddMassTransit(x =>
     // 2. Konfigurujemy po³¹czenie z RabbitMQ
     x.UsingRabbitMq((context, cfg) =>
     {
-        // Tutaj podajemy namiary na serwer RabbitMQ.
-        // Jeœli uruchomisz go lokalnie na Dockerze, to s¹ domyœlne ustawienia:
-        cfg.Host("localhost", "/", h => {
+        cfg.Host("localhost", "/", h =>
+        {
             h.Username("guest");
             h.Password("guest");
         });
 
-        // To automatycznie tworzy kolejki i podpina konsumenta
+        // Only configure endpoints for actual consumers in this service.
         cfg.ConfigureEndpoints(context);
+
+        // Outgoing device updates (published event)
+        cfg.Message<DeviceUpdatedEvent>(m =>
+        {
+            m.SetEntityName("device-updated"); // exchange name
+        });
+
+        cfg.Publish<DeviceUpdatedEvent>(p =>
+        {
+            p.ExchangeType = "fanout";
+        });
+
+        // NOTE:
+        // Do NOT declare a ReceiveEndpoint for device updates in the simulator.
+        // The simulator only publishes DeviceUpdatedEvent; the control panel app should consume it.
     });
 });
 // ---------------------------------------------
 
 
 builder.Services.AddControllers();
-builder.Services.AddSingleton<IO_projekt_symulator.Server.Services.IVirtualDeviceService, IO_projekt_symulator.Server.Services.VirtualDeviceService>();
-// Rejestrujemy nasza usluge dzialajaca w tle
+builder.Services.AddScoped<IO_projekt_symulator.Server.Services.IVirtualDeviceService, IO_projekt_symulator.Server.Services.VirtualDeviceService>();
 builder.Services.AddHostedService<IO_projekt_symulator.Server.Services.SensorSimulationService>();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

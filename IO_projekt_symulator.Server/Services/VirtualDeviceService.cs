@@ -1,35 +1,31 @@
-﻿using IO_projekt_symulator.Server.Controllers;
+﻿using IO_projekt_symulator.Server.Contracts;
+using IO_projekt_symulator.Server.DTOs;
 using IO_projekt_symulator.Server.Hubs;
 using IO_projekt_symulator.Server.Models;
+using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 using System.Text.Json;
-using IO_projekt_symulator.Server.DTOs; // <--- Dodajemy ten using, żeby widział folder DTOs
 
 namespace IO_projekt_symulator.Server.Services
 {
     public class VirtualDeviceService : IVirtualDeviceService
     {
-        // Używamy nowej klasy 'Device'
-        private  ConcurrentDictionary<Guid, Device> _devices = new();
-        // To jest Twój "Nadajnik". Pozwala wysłać wiadomość do wszystkich podłączonych klientów.
+        private ConcurrentDictionary<Guid, Device> _devices = new();
         private readonly IHubContext<DevicesHub> _hubContext;
-        private readonly string _filePath = "devices_db.json"; // Nazwa pliku bazy
-        public VirtualDeviceService(IHubContext<DevicesHub> hubContext)
+        private readonly IPublishEndpoint _publishEndpoint;
+        private readonly string _filePath = "devices_db.json";
+
+        public VirtualDeviceService(IHubContext<DevicesHub> hubContext, IPublishEndpoint publishEndpoint)
         {
             _hubContext = hubContext;
+            _publishEndpoint = publishEndpoint;
 
-            // Próba wczytania danych przy starcie
             LoadData();
 
-            // Jeśli plik był pusty (pierwsze uruchomienie), dodaj startowe (opcjonalnie)
             if (_devices.IsEmpty)
             {
-                // Tu możesz dodać te swoje startowe urządzenia testowe, jeśli chcesz
-                // AddDevice("Test", DeviceType.@switch, "Salon", "Opis");
             }
-
-         
         }
 
         // Metoda do zapisu do pliku
@@ -167,7 +163,7 @@ namespace IO_projekt_symulator.Server.Services
 
         
         // --- ZMODYFIKOWANA METODA UPDATE ---
-        public Device? UpdateDeviceState(Guid id, double? newValue, string? newUnit, bool bypassReadOnly = false)
+        public async Task<Device?> UpdateDeviceStateAsync(Guid id, double? newValue, string? newUnit, bool bypassReadOnly = false)
         {
             if (!_devices.TryGetValue(id, out var device)) return null;
 
@@ -214,6 +210,24 @@ namespace IO_projekt_symulator.Server.Services
 
                 // --- POPRAWKA (Punkt 4): Zapisujemy natychmiast po aktualizacji ---
                 SaveData();
+
+                await _hubContext.Clients.All.SendAsync(
+                    "DeviceUpdated",
+                    new DeviceUpdatedEventDto
+                    {
+                        DeviceId = device.Id,
+                        Value = device.State.Value,
+                        Unit = device.State.Unit,
+                        Malfunctioning = device.Malfunctioning
+                    });
+
+                await _publishEndpoint.Publish(new DeviceUpdatedEvent
+                {
+                    DeviceId = device.Id,
+                    Value = device.State.Value,
+                    Unit = device.State.Unit,
+                    Malfunctioning = device.Malfunctioning
+                });
             }
 
             return device;
@@ -221,7 +235,7 @@ namespace IO_projekt_symulator.Server.Services
 
         // ... inne metody ...
 
-        public bool SetMalfunctionState(Guid id, bool isMalfunctioning)
+        public async Task<bool> SetMalfunctionStateAsync(Guid id, bool isMalfunctioning)
         {
             if (!_devices.TryGetValue(id, out var device)) return false;
 
@@ -237,10 +251,23 @@ namespace IO_projekt_symulator.Server.Services
             // Używamy nazwy zdarzenia "DeviceUpdated" lub specyficznego "MalfunctionChanged"
             // Tutaj dla uproszczenia wysyłamy sygnał, że urządzenie się zmieniło.
             // Frontend prawdopodobnie nasłuchuje na zmiany lub odświeży listę.
+            await _hubContext.Clients.All.SendAsync(
+                "DeviceUpdated",
+                new DeviceUpdatedEventDto
+                {
+                    DeviceId = id,
+                    Value = device.State.Value,
+                    Unit = device.State.Unit,
+                    Malfunctioning = isMalfunctioning
+                });
 
-            // OPCJA A: Jeśli frontend nasłuchuje tylko na 'UpdateReceived' (wartości):
-            // Możemy wysłać nową metodę, np. "MalfunctionUpdate"
-            _hubContext.Clients.All.SendAsync("MalfunctionUpdate", id, isMalfunctioning);
+            await _publishEndpoint.Publish(new DeviceUpdatedEvent
+            {
+                DeviceId = id,
+                Value = device.State.Value,
+                Unit = device.State.Unit,
+                Malfunctioning = isMalfunctioning
+            });
 
             return true;
         }

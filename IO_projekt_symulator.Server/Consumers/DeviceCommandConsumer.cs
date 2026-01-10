@@ -25,7 +25,7 @@ namespace IO_projekt_symulator.Server.Consumers
             var msg = context.Message;
             _logger.LogInformation($"[RABBITMQ] Otrzymano komendę: ID={msg.DeviceId}, Val={msg.Value}");
 
-            var result = _deviceService.UpdateDeviceState(
+            var result = _deviceService.UpdateDeviceStateAsync(
                 msg.DeviceId,
                 msg.Value,
                 null, // Unit (zakładamy null)

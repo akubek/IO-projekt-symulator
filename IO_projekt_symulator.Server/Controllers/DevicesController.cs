@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using IO_projekt_symulator.Server.DTOs; // <--- Dodajemy ten using, żeby widział folder DTOs
 
 using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 
 namespace IO_projekt_symulator.Server.Controllers
 {
@@ -50,12 +51,11 @@ namespace IO_projekt_symulator.Server.Controllers
         // POST /api/devices/{id}/state
         // Endpoint do zmiany stanu (dla Panelu Sterowania)
         [HttpPost("{id}/state")]
-        public IActionResult UpdateState(Guid id, [FromBody] UpdateStateDto dto)
+        public async Task<IActionResult> UpdateState(Guid id, [FromBody] UpdateStateDto dto)
         {
             _logger.LogInformation($"Otrzymano aktualizację dla {id}");
 
-            // Przekazujemy Value i Unit do serwisu
-            var updatedDevice = _deviceService.UpdateDeviceState(id, dto.Value, dto.Unit, bypassReadOnly: true);
+            var updatedDevice = await _deviceService.UpdateDeviceStateAsync(id, dto.Value, dto.Unit, bypassReadOnly: true);
 
             if (updatedDevice == null)
             {
@@ -78,9 +78,9 @@ namespace IO_projekt_symulator.Server.Controllers
 
 
         [HttpPost("{id}/malfunction")]
-        public IActionResult SetMalfunction(Guid id, [FromBody] MalfunctionDto dto)
+        public async Task<IActionResult> SetMalfunction(Guid id, [FromBody] MalfunctionDto dto)
         {
-            var success = _deviceService.SetMalfunctionState(id, dto.Malfunctioning);
+            var success = await _deviceService.SetMalfunctionStateAsync(id, dto.Malfunctioning);
 
             if (!success)
             {

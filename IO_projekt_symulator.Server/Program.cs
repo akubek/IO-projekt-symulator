@@ -4,10 +4,19 @@ using IO_projekt_symulator.Server.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // <-- React
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 // Add services to the container.
 // 1. DODAJ SIGNALR DO KONTENERA
-builder.Services.AddSignalR();
-
 builder.Services.AddSignalR();
 
 // --- KONFIGURACJA MASSTRANSIT (RABBITMQ) ---
@@ -46,6 +55,8 @@ var app = builder.Build();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
+app.UseCors("AllowReactApp");
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -53,9 +64,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
 app.UseAuthorization();
+
+//app.UseHttpsRedirection();
 
 app.MapControllers();
 

@@ -7,6 +7,7 @@ import Button from "@mui/material/Button";
 import DeviceCard from "./components/DeviceCard";
 import CreateDeviceModal from "./components/CreateDeviceModal";
 import DeviceControlModal from "./components/DeviceControlModal";
+import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 
 function SimulatorPanel() {
 
@@ -24,24 +25,37 @@ function SimulatorPanel() {
             return response.json();
         }
     });
-
-    // Polling effect to refresh device list every 5 seconds
+    
     useEffect(() => {
-        // do not poll if modal is open
-        if (createModalOpen) return;
-        // refresh selected device
-        else if (selectedDevice) { 
+        const connection = new HubConnectionBuilder().withUrl("/devicesHub")
+                                                     .withAutomaticReconnect()
+                                                     .configureLogging(LogLevel.Information)
+                                                     .build();
+        // connection start
+        connection.start()
+            .then(() => console.log("SignalR Connected"))
+            .catch(err => console.error("SignalR Connection Error: ", err));
+
+        // listening for updates from the server and invalidating the query
+        connection.on("UpdateReceived", (id, value) => {
+            console.log(`UpdateReceived for device ${id}: ${value}`);
+            queryClient.invalidateQueries({ queryKey: ['devices'] });
+        });
+
+        // refresh selected device if malfunctioning
+        if (selectedDevice) {
             const updated = devices.find(d => d.id === selectedDevice.id);
             if (updated) {
                 setSelectedDevice(updated);
             }
         }
-        const id = setInterval(() => {
-            queryClient.invalidateQueries({ queryKey: ['devices'] });
-        }, 5000);
-        return () => clearInterval(id);
-    }, [devices, selectedDevice, createModalOpen, queryClient]);
 
+        // connection cleanup
+        return () => {
+            connection.off("UpdateReceived");
+            connection.stop();
+        };
+    }, [queryClient, selectedDevice, devices]);
 
     // Mutations for creating the device type object through API
     const createDeviceMutation = useMutation({

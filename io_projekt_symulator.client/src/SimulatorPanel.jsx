@@ -89,10 +89,7 @@ function SimulatorPanel() {
             });
             if (!response.ok) { throw new Error("Create update failed"); }
             return response.json();
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['devices'] });
-        },
+        }
     });
 
     const handleMalfunctionMutation = useMutation({

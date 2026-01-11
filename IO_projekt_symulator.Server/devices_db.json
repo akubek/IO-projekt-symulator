@@ -4,7 +4,7 @@
     "name": "Termometr Zewn\u0119trzny",
     "type": "sensor",
     "state": {
-      "value": 35.7,
+      "value": 34,
       "unit": "\u00B0C"
     },
     "config": {
@@ -42,7 +42,7 @@
     "name": "Rolety Balkonowe",
     "type": "slider",
     "state": {
-      "value": 30,
+      "value": 60,
       "unit": null
     },
     "config": {
@@ -61,7 +61,7 @@
     "name": "Termometr Wewn\u0119trzny",
     "type": "sensor",
     "state": {
-      "value": 30.5,
+      "value": 29.9,
       "unit": "\u00B0C"
     },
     "config": {
@@ -80,7 +80,7 @@
     "name": "Stacja Pogodowa",
     "type": "sensor",
     "state": {
-      "value": 17.6,
+      "value": 22.1,
       "unit": "\u00B0C"
     },
     "config": {
@@ -99,7 +99,7 @@
     "name": "Wilgotno\u015B\u0107 \u0141azienka",
     "type": "sensor",
     "state": {
-      "value": 90.8,
+      "value": 84.4,
       "unit": "%"
     },
     "config": {
@@ -137,7 +137,7 @@
     "name": "Zu\u017Cycie Pr\u0105du (Licznik)",
     "type": "sensor",
     "state": {
-      "value": 1.2,
+      "value": 3.5,
       "unit": "W"
     },
     "config": {

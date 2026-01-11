@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36616.10 d17.14
+VisualStudioVersion = 17.14.36616.10
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "io_projekt_symulator.client", "io_projekt_symulator.client\io_projekt_symulator.client.esproj", "{C408C069-6A5A-9175-8E60-023716012871}"
 EndProject
@@ -15,7 +15,6 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{C408C069-6A5A-9175-8E60-023716012871}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C408C069-6A5A-9175-8E60-023716012871}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C408C069-6A5A-9175-8E60-023716012871}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 		{C408C069-6A5A-9175-8E60-023716012871}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C408C069-6A5A-9175-8E60-023716012871}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C408C069-6A5A-9175-8E60-023716012871}.Release|Any CPU.Deploy.0 = Release|Any CPU

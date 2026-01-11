@@ -10,7 +10,13 @@ export default defineConfig({
             '/api': {
                 target: 'https://localhost:7075',
                 changeOrigin: true,
+                secure: false
+            },
+            '/devicesHub': {
+                target: 'http://localhost:5146',
+                changeOrigin: true,
                 secure: false,
+                ws: true
             }
         }
     }

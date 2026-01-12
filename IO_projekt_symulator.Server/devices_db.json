@@ -4,7 +4,7 @@
     "name": "Zu\u017Cycie Pr\u0105du (Licznik)",
     "type": "sensor",
     "state": {
-      "value": 131.7,
+      "value": 131.6,
       "unit": "W"
     },
     "config": {
@@ -61,7 +61,7 @@
     "name": "Stacja Pogodowa",
     "type": "sensor",
     "state": {
-      "value": 15.4,
+      "value": 15.3,
       "unit": "\u00B0C"
     },
     "config": {
@@ -80,7 +80,7 @@
     "name": "Termometr Wewn\u0119trzny",
     "type": "sensor",
     "state": {
-      "value": 27.3,
+      "value": 26.8,
       "unit": "\u00B0C"
     },
     "config": {
@@ -137,7 +137,7 @@
     "name": "Termometr Zewn\u0119trzny",
     "type": "sensor",
     "state": {
-      "value": 42.1,
+      "value": 41.7,
       "unit": "\u00B0C"
     },
     "config": {

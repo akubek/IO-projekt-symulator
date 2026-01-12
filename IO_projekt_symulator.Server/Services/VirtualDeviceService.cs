@@ -1,10 +1,14 @@
-﻿using IO_projekt_symulator.Server.Controllers;
+﻿using IO_projekt_symulator.Server.Contracts;
+using IO_projekt_symulator.Server.Controllers;
+using IO_projekt_symulator.Server.DTOs; // <--- Dodajemy ten using, żeby widział folder DTOs
 using IO_projekt_symulator.Server.Hubs;
 using IO_projekt_symulator.Server.Models;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 using System.Text.Json;
-using IO_projekt_symulator.Server.DTOs; // <--- Dodajemy ten using, żeby widział folder DTOs
+
+using MassTransit;
+using IO_projekt_symulator.Server.Contracts;
 
 namespace IO_projekt_symulator.Server.Services
 {
@@ -15,10 +19,12 @@ namespace IO_projekt_symulator.Server.Services
         // To jest Twój "Nadajnik". Pozwala wysłać wiadomość do wszystkich podłączonych klientów.
         private readonly IHubContext<DevicesHub> _hubContext;
         private readonly string _filePath = "devices_db.json"; // Nazwa pliku bazy
-        public VirtualDeviceService(IHubContext<DevicesHub> hubContext)
+        private readonly IBus _bus; // <--- DODAJ TO POLE
+
+        public VirtualDeviceService(IHubContext<DevicesHub> hubContext , IBus bus) // <--- DODAJ PARAMETR
         {
             _hubContext = hubContext;
-
+            _bus = bus;
             // Próba wczytania danych przy starcie
             LoadData();
 
@@ -214,6 +220,13 @@ namespace IO_projekt_symulator.Server.Services
 
                 // --- POPRAWKA (Punkt 4): Zapisujemy natychmiast po aktualizacji ---
                 SaveData();
+                // 3. --- TUTAJ DODAJ WYSYŁANIE DO RABBITMQ ---
+
+                _bus.Publish(new DeviceUpdatedEvent
+                {
+                    DeviceId = device.Id,
+                    NewValue = device.State.Value ?? 0
+                });
             }
 
             return device;

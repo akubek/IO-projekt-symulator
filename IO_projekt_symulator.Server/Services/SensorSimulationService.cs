@@ -22,7 +22,7 @@ namespace IO_projekt_symulator.Server.Services
             while (!stoppingToken.IsCancellationRequested)
             {
                 // Czekamy 5 lub 10 sekund (zależy jak wolisz)
-                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(50), stoppingToken);
 
                 using (var scope = _serviceProvider.CreateScope())
                 {

@@ -4,7 +4,7 @@
     "name": "Termometr Zewn\u0119trzny",
     "type": "sensor",
     "state": {
-      "value": 38.1,
+      "value": 41.9,
       "unit": "\u00B0C"
     },
     "config": {
@@ -23,7 +23,7 @@
     "name": "Rolety Salon",
     "type": "slider",
     "state": {
-      "value": 60,
+      "value": 70,
       "unit": null
     },
     "config": {
@@ -42,7 +42,7 @@
     "name": "Rolety Balkonowe",
     "type": "slider",
     "state": {
-      "value": 30,
+      "value": 10,
       "unit": null
     },
     "config": {
@@ -61,7 +61,7 @@
     "name": "Termometr Wewn\u0119trzny",
     "type": "sensor",
     "state": {
-      "value": 29.9,
+      "value": 27.4,
       "unit": "\u00B0C"
     },
     "config": {
@@ -80,7 +80,7 @@
     "name": "Stacja Pogodowa",
     "type": "sensor",
     "state": {
-      "value": 17.8,
+      "value": 14.9,
       "unit": "\u00B0C"
     },
     "config": {
@@ -99,7 +99,7 @@
     "name": "Wilgotno\u015B\u0107 \u0141azienka",
     "type": "sensor",
     "state": {
-      "value": 90,
+      "value": 94.3,
       "unit": "%"
     },
     "config": {
@@ -118,7 +118,7 @@
     "name": "Ekspres do Kawy",
     "type": "switch",
     "state": {
-      "value": 0,
+      "value": 1,
       "unit": null
     },
     "config": {
@@ -137,7 +137,7 @@
     "name": "Zu\u017Cycie Pr\u0105du (Licznik)",
     "type": "sensor",
     "state": {
-      "value": 122.2,
+      "value": 131.4,
       "unit": "W"
     },
     "config": {
@@ -156,7 +156,7 @@
     "name": "G\u0142\u00F3wne \u015Awiat\u0142o",
     "type": "switch",
     "state": {
-      "value": 0,
+      "value": 1,
       "unit": null
     },
     "config": {

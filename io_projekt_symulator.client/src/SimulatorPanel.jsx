@@ -23,7 +23,9 @@ function SimulatorPanel() {
             const response = await fetch("/api/devices");
             if (!response.ok) { throw new Error("Failed to fetch devices"); }
             return response.json();
-        }
+        },
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false
     });
     
     useEffect(() => {
@@ -42,20 +44,22 @@ function SimulatorPanel() {
             queryClient.invalidateQueries({ queryKey: ['devices'] });
         });
 
-        // refresh selected device if malfunctioning
-        if (selectedDevice) {
-            const updated = devices.find(d => d.id === selectedDevice.id);
-            if (updated) {
-                setSelectedDevice(updated);
-            }
-        }
-
         // connection cleanup
         return () => {
             connection.off("UpdateReceived");
             connection.stop();
         };
-    }, [queryClient, selectedDevice, devices]);
+    }, [queryClient]);
+
+    // Refresh selected device when devices change
+    useEffect(() => {
+        if (selectedDevice && devices.length > 0) {
+            const updated = devices.find(d => d.id === selectedDevice.id);
+            if (updated && JSON.stringify(updated) !== JSON.stringify(selectedDevice)) {
+                setSelectedDevice(updated);
+            }
+        }
+    }, [devices, selectedDevice]);
 
     // Mutations for creating the device type object through API
     const createDeviceMutation = useMutation({
@@ -85,10 +89,7 @@ function SimulatorPanel() {
             });
             if (!response.ok) { throw new Error("Create update failed"); }
             return response.json();
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['devices'] });
-        },
+        }
     });
 
     const handleMalfunctionMutation = useMutation({

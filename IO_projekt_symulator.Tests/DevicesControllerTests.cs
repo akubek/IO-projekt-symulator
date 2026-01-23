@@ -1,50 +1,51 @@
-﻿using IO_projekt_symulator.Server.Controllers;
-using IO_projekt_symulator.Server.DTOs;
-using IO_projekt_symulator.Server.Models;
-using IO_projekt_symulator.Server.Services;
-using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using Xunit;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging; // <--- Ważne dla ILogger
+using IO_projekt_symulator.Server.Controllers;
+using IO_projekt_symulator.Server.Services;
+using IO_projekt_symulator.Server.Models;
+using IO_projekt_symulator.Server.DTOs;
 
 namespace IO_projekt_symulator.Tests
 {
-    internal class DevicesControllerTests
+    public class DevicesControllerTests
     {
         [Fact]
         public void UpdateState_AdminRequest_ShouldUpdateServiceAndNotifyClients()
         {
-            // ARRANGE
+            // --- ARRANGE ---
             var deviceId = Guid.NewGuid();
             var newValue = 55.0;
 
-            // Mockujemy Serwis (nie chcemy, żeby grzebał w plikach, chcemy tylko wiedzieć, czy został wywołany)
+            // Mockujemy Serwis
             var serviceMock = new Mock<IVirtualDeviceService>();
 
-            // Konfigurujemy Mocka: "Jak ktoś zawoła UpdateDeviceState, zwróć mu sukces (obiekt Device)"
-            serviceMock.Setup(s => s.UpdateDeviceState(deviceId, newValue, null, true))
-                       .Returns(new Device { State = new DeviceState { Value = newValue } })
-                       .Verifiable(); // Ważne: zaznaczamy, że będziemy weryfikować to wywołanie
+            // Mockujemy Loggera (to naprawia błąd konstruktora!)
+            var loggerMock = new Mock<ILogger<DevicesController>>();
 
-            var controller = new DevicesController(serviceMock.Object);
+            // Konfigurujemy Mocka Serwisu: "Jak ktoś zawoła UpdateDeviceState, zwróć sukces"
+            serviceMock.Setup(s => s.UpdateDeviceState(It.IsAny<Guid>(), It.IsAny<double>(), null, true))
+                       .Returns(new Device { State = new DeviceState { Value = newValue } });
 
-            // ACT
+            // Tworzymy kontroler, wstrzykując oba mocki
+            var controller = new DevicesController(serviceMock.Object, loggerMock.Object);
+
+            // --- ACT ---
             var result = controller.UpdateState(deviceId, new UpdateStateDto { Value = newValue });
 
-            // ASSERT
-            // 1. Sprawdzamy, czy dostaliśmy HTTP 200 OK
-            var okResult = Assert.IsType<OkObjectResult>(result);
+            // --- ASSERT ---
+            // 1. Sprawdzamy czy dostaliśmy HTTP 200 OK
+            Assert.IsType<OkObjectResult>(result);
 
             // 2. KLUCZOWE: Weryfikujemy, czy Kontroler wywołał Serwis z flagą 'bypassReadOnly = true'
-            // To udowadnia, że kontroler działa w trybie Administratora
+            // To udowadnia, że ten endpoint działa z uprawnieniami Administratora
             serviceMock.Verify(s => s.UpdateDeviceState(
-                It.Is<Guid>(g => g == deviceId),
+                deviceId,
                 newValue,
                 null,
-                true // <--- Tu sprawdzamy, czy kontroler wymusza uprawnienia Admina
+                true // <--- Tu sprawdzamy flagę Admina
             ), Times.Once);
         }
     }

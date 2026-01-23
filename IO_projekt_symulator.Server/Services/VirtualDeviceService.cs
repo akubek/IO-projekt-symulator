@@ -1,14 +1,14 @@
 ﻿using IO_projekt_symulator.Server.Contracts;
+using IO_projekt_symulator.Server.Contracts;
 using IO_projekt_symulator.Server.Controllers;
 using IO_projekt_symulator.Server.DTOs; // <--- Dodajemy ten using, żeby widział folder DTOs
 using IO_projekt_symulator.Server.Hubs;
 using IO_projekt_symulator.Server.Models;
+using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Text.Json;
-
-using MassTransit;
-using IO_projekt_symulator.Server.Contracts;
 
 namespace IO_projekt_symulator.Server.Services
 {
@@ -187,7 +187,7 @@ namespace IO_projekt_symulator.Server.Services
             {
                 double val = newValue.Value;
 
-                // --- POPRAWKA (Punkt 2): Walidacja zakresu (Math.Clamp) ---
+                // ---  Walidacja zakresu (Math.Clamp) ---
                 // Sprawdzamy zakres tylko jeśli Min/Max są zdefiniowane w Configu
                 if (device.Config.Min.HasValue && device.Config.Max.HasValue)
                 {
@@ -218,7 +218,7 @@ namespace IO_projekt_symulator.Server.Services
                     _hubContext.Clients.All.SendAsync("UpdateReceived", device.Id, device.State.Value.Value);
                 }
 
-                // --- POPRAWKA (Punkt 4): Zapisujemy natychmiast po aktualizacji ---
+                // --- Zapisujemy natychmiast po aktualizacji ---
                 SaveData();
                 // 3. --- TUTAJ DODAJ WYSYŁANIE DO RABBITMQ ---
 
@@ -269,5 +269,12 @@ namespace IO_projekt_symulator.Server.Services
             // Opcjonalnie: Powiadom frontend, że symulacja stanęła (żeby przycisk zmienił kolor)
             _hubContext.Clients.All.SendAsync("SimulationStateChanged", enable);
         }
+
+        // Metoda pomocnicza dla testów (pozwala wstrzyknąć urządzenie z pominięciem DTO)
+        public void AddDeviceForTest(Device device)
+        {
+            _devices.TryAdd(device.Id, device);
+        }
+
     }
 }

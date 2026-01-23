@@ -17,7 +17,7 @@ namespace IO_projekt_symulator.Server.Consumers
             _logger = logger;
         }
 
-        // --- TU JEST TWOJA LOGIKA BIZNESOWA ---
+        // --- LOGIKA BIZNESOWA ---
         // Wywołujemy UpdateDeviceState z parametrem bypassReadOnly = FALSE.
         // To oznacza: "Jeśli Panel próbuje zmienić sensor, wyrzuć null/błąd".
         public Task Consume(ConsumeContext<SetDeviceStateCommand> context)

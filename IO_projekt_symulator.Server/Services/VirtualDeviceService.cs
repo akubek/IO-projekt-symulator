@@ -195,9 +195,11 @@ namespace IO_projekt_symulator.Server.Services
                 }
 
                 double oldValue = device.State.Value ?? 0;
-                if (Math.Abs(oldValue - newValue.Value) > 0.001)
+
+                // ZMIANA: Porównujemy z 'val' (przyciętym), a nie z 'newValue.Value' (surowym)
+                if (Math.Abs(oldValue - val) > 0.001)
                 {
-                    device.State.Value = newValue.Value;
+                    device.State.Value = val; // ZMIANA: Przypisujemy 'val'
                     changed = true;
                 }
             }

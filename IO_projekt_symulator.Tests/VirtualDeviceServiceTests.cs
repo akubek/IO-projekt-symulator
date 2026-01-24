@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 using Moq;
 using Microsoft.AspNetCore.SignalR;
@@ -12,20 +14,11 @@ namespace IO_projekt_symulator.Tests
     public class VirtualDeviceServiceTests
     {
         [Theory]
-        // Przekazujemy typ jako INT (0=Switch, 1=Slider, 2=Sensor)
-        // Parametry: (TypeInt, ReadOnly, BypassReadOnly, ValueToSet, ExpectedValue)
-
-        // Scenariusz 1: Haker (Panel) próbuje zmienić Czujnik (Sensor=2) -> POWINNO SIĘ NIE UDAĆ (null)
-        [InlineData(2, true, false, 25.0, null)]
-
-        // Scenariusz 2: Admin zmienia Czujnik -> POWINNO SIĘ UDAĆ (zmiana na 25.0)
-        [InlineData(2, true, true, 25.0, 25.0)]
-
-        // Scenariusz 3: Panel zmienia Switch (Switch=0) -> POWINNO SIĘ UDAĆ
-        [InlineData(0, false, false, 1.0, 1.0)]
-
-        // Scenariusz 4: Walidacja zakresu (Slider=1) - próba ustawienia 150 przy max 100 -> CLAMP do 100
-        [InlineData(1, false, true, 150.0, 100.0)]
+        // 0=Switch, 1=Slider, 2=Sensor
+        [InlineData(2, true, false, 25.0, null)]   // Haker -> NULL
+        [InlineData(2, true, true, 25.0, 25.0)]    // Admin -> SUKCES
+        [InlineData(0, false, false, 1.0, 1.0)]    // Switch -> SUKCES
+        [InlineData(1, false, true, 150.0, 100.0)] // Clamp -> 100
         public void UpdateDeviceState_ShouldEnforceSecurityAndValidationRules(
             int deviceTypeInt,
             bool isReadOnly,
@@ -34,28 +27,35 @@ namespace IO_projekt_symulator.Tests
             double? expectedValue)
         {
             // --- ARRANGE ---
+
+            // 1. Mockowanie SignalR (Ten fragment naprawia błąd NullReference!)
             var hubMock = new Mock<IHubContext<DevicesHub>>();
-           
+            var clientsMock = new Mock<IHubClients>();
+            var clientProxyMock = new Mock<IClientProxy>();
+
+            // Konfigurujemy łańcuszek: Hub -> Clients -> All
+            hubMock.Setup(h => h.Clients).Returns(clientsMock.Object);
+            clientsMock.Setup(c => c.All).Returns(clientProxyMock.Object);
+
+            // 2. Mockowanie RabbitMQ (Bus)
             var busMock = new Mock<IBus>();
-          
+            // Upewniamy się, że Publish nie zwróci nulla (ważne!)
             busMock.Setup(b => b.Publish(It.IsAny<object>(), It.IsAny<CancellationToken>()))
                    .Returns(Task.CompletedTask);
 
-            // Tworzymy serwis
+            // 3. Tworzenie serwisu
             var service = new VirtualDeviceService(hubMock.Object, busMock.Object);
 
             var deviceId = Guid.NewGuid();
-            var deviceType = (DeviceType)deviceTypeInt; // Rzutowanie int na Enum
-
             var mockDevice = new Device
             {
                 Id = deviceId,
-                Type = deviceType,
+                Type = (DeviceType)deviceTypeInt,
                 Config = new DeviceConfig { Readonly = isReadOnly, Min = 0, Max = 100 },
                 State = new DeviceState { Value = 0 }
             };
 
-            // Używamy metody pomocniczej, którą dodałaś do VirtualDeviceService.cs
+            // Wstrzyknięcie urządzenia
             service.AddDeviceForTest(mockDevice);
 
             // --- ACT ---
@@ -64,12 +64,12 @@ namespace IO_projekt_symulator.Tests
             // --- ASSERT ---
             if (expectedValue == null)
             {
-                Assert.Null(result); // Oczekujemy odrzucenia zmiany (zwraca null)
+                Assert.Null(result);
             }
             else
             {
                 Assert.NotNull(result);
-                Assert.Equal(expectedValue.Value, result.State.Value); // Sprawdzamy czy wartość jest poprawna
+                Assert.Equal(expectedValue.Value, result.State.Value);
             }
         }
     }

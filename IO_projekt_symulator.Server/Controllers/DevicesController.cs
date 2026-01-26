@@ -1,12 +1,13 @@
-﻿using IO_projekt_symulator.Server.Models;
+﻿using IO_projekt_symulator.Server.DTOs;
 using IO_projekt_symulator.Server.Services;
 using Microsoft.AspNetCore.Mvc;
-using IO_projekt_symulator.Server.DTOs; // <--- Dodajemy ten using, żeby widział folder DTOs
-
-using System.ComponentModel.DataAnnotations;
 
 namespace IO_projekt_symulator.Server.Controllers
 {
+    /// <summary>
+    /// API Controller for managing virtual IoT devices.
+    /// Acts as the main entry point for the frontend application.
+    /// </summary>
     [ApiController]
     [Route("api/devices")]
     public class DevicesController : ControllerBase
@@ -20,15 +21,18 @@ namespace IO_projekt_symulator.Server.Controllers
             _logger = logger;
         }
 
-        // GET /api/devices
-        // Ta metoda jest teraz zgodna z żądaniem frontendu 'loadDevices()'
+        /// <summary>
+        /// Retrieves a list of all registered devices.
+        /// </summary>
         [HttpGet]
         public IActionResult GetAllDevices()
         {
             return Ok(_deviceService.GetDevices());
         }
 
-        // GET /api/devices/{id}
+        /// <summary>
+        /// Retrieves details of a specific device by ID.
+        /// </summary>
         [HttpGet("{id}")]
         public IActionResult GetDevice(Guid id)
         {
@@ -37,46 +41,52 @@ namespace IO_projekt_symulator.Server.Controllers
             return Ok(device);
         }
 
-        // POST /api/devices
-        // Endpoint do tworzenia urządzeń (dla Osoby 5)
+        /// <summary>
+        /// Creates a new device in the simulator.
+        /// </summary>
         [HttpPost]
         public IActionResult CreateDevice([FromBody] CreateDeviceDto dto)
         {
-            // Przekazujemy całe DTO do serwisu
             var newDevice = _deviceService.AddDevice(dto);
             return CreatedAtAction(nameof(GetDevice), new { id = newDevice.Id }, newDevice);
         }
 
-        // POST /api/devices/{id}/state
-        // Endpoint do zmiany stanu (dla Panelu Sterowania)
+        /// <summary>
+        /// Updates the state (value) of a device.
+        /// This endpoint is used by the Admin Panel and bypasses ReadOnly restrictions.
+        /// </summary>
         [HttpPost("{id}/state")]
         public IActionResult UpdateState(Guid id, [FromBody] UpdateStateDto dto)
         {
-            _logger.LogInformation($"Otrzymano aktualizację dla {id}");
+            _logger.LogInformation($"Received state update request for device: {id}");
 
-            // Przekazujemy Value i Unit do serwisu
+            // Admin requests via API are trusted, so we set bypassReadOnly = true
             var updatedDevice = _deviceService.UpdateDeviceState(id, dto.Value, dto.Unit, bypassReadOnly: true);
 
             if (updatedDevice == null)
             {
-                return NotFound("Device not found or readonly.");
+                return NotFound("Device not found or readonly restriction applied.");
             }
 
             return Ok(updatedDevice);
         }
 
-        // DELETE /api/devices/{id}
+        /// <summary>
+        /// Deletes a device from the system.
+        /// </summary>
         [HttpDelete("{id}")]
         public IActionResult DeleteDevice(Guid id)
         {
             if (_deviceService.RemoveDevice(id))
             {
-                return NoContent(); // Sukces, brak treści
+                return NoContent();
             }
             return NotFound();
         }
 
-
+        /// <summary>
+        /// Toggles the simulated malfunction state of a device.
+        /// </summary>
         [HttpPost("{id}/malfunction")]
         public IActionResult SetMalfunction(Guid id, [FromBody] MalfunctionDto dto)
         {
@@ -84,37 +94,22 @@ namespace IO_projekt_symulator.Server.Controllers
 
             if (!success)
             {
-                return NotFound($"Nie znaleziono urządzenia o ID: {id}");
+                return NotFound($"Device with ID {id} not found.");
             }
 
-            return Ok(new { message = $"Stan awarii urządzenia {id} ustawiony na: {dto.Malfunctioning}" });
+            return Ok(new { message = $"Malfunction state for {id} set to: {dto.Malfunctioning}" });
         }
 
-
-        // POST /api/devices/simulation
-        // Body: true (włącz) lub false (wyłącz)
+        /// <summary>
+        /// Globally enables or disables the background simulation service.
+        /// </summary>
         [HttpPost("simulation")]
         public IActionResult ToggleSimulation([FromBody] bool enable)
         {
             _deviceService.ToggleSimulation(enable);
-
-            var status = enable ? "URUCHOMIONA" : "ZATRZYMANA";
-            _logger.LogInformation($"Symulacja została {status} przez admina.");
-
-            return Ok(new { message = $"Symulacja {status}", isEnabled = enable });
+            var status = enable ? "STARTED" : "STOPPED";
+            _logger.LogInformation($"Simulation {status} by admin.");
+            return Ok(new { message = $"Simulation {status}", isEnabled = enable });
         }
     }
 }
-
-/*
-plik DevicesController.cs jest już kompletny i zawiera:
-
-GET /api/devices (dla Panelu i frontendu)
-
-GET /api/devices/{id} (dla Panelu i frontendu)
-
-POST /api/devices/{id}/state (dla Panelu)
-
-POST /api/devices (dla Twojego kolegi z frontendu, Osoby 5)
- 
- */

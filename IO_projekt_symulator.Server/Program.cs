@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
 });
 
 // Add services to the container.
-// 1. DODAJ SIGNALR DO KONTENERA
+// 1.SIGNALR DO KONTENERA
 builder.Services.AddSignalR();
 
 // --- KONFIGURACJA MASSTRANSIT (RABBITMQ) ---
@@ -29,7 +29,7 @@ builder.Services.AddMassTransit(x =>
     x.UsingRabbitMq((context, cfg) =>
     {
         // Tutaj podajemy namiary na serwer RabbitMQ.
-        // Jeœli uruchomisz go lokalnie na Dockerze, to s¹ domyœlne ustawienia:
+        // lokalnie na Dockerze, to s¹ domyœlne ustawienia:
         cfg.Host("localhost", "/", h => {
             h.Username("guest");
             h.Password("guest");

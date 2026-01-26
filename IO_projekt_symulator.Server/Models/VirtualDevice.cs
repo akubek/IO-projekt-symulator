@@ -4,13 +4,13 @@ using IO_projekt_symulator.Server.Models; // Upewnij się, że ta ścieżka do D
 namespace IO_projekt_symulator.Server.Models
 {
     /// <summary>
-    /// Główna klasa urządzenia, która DOKŁADNIE pasuje
-    /// do schematu JSON wymaganego przez frontend.
+    /// Represents a virtual IoT device in the system.
+    /// This model matches the JSON schema required by the frontend application.
     /// </summary>
     public class Device
     {
-        // Atrybuty [JsonPropertyName] zapewniają, że nazwy w JSON
-        // będą pisane małymi literami, tak jak chce frontend.
+        // stributes [JsonPropertyName] provides, that names in JSON
+        // will in  be lower case
 
         [JsonPropertyName("id")]
         public Guid Id { get; set; } = Guid.NewGuid();
@@ -55,7 +55,7 @@ namespace IO_projekt_symulator.Server.Models
     }
 
     /// <summary>
-    /// Reprezentuje obiekt "config" w schemacie JSON
+    /// Represents "config" object in  JSON schema
     /// </summary>
     public class DeviceConfig
     {

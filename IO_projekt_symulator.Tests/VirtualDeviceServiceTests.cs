@@ -33,7 +33,7 @@ namespace IO_projekt_symulator.Tests
             var clientsMock = new Mock<IHubClients>();
             var clientProxyMock = new Mock<IClientProxy>();
 
-            // Konfigurujemy łańcuszek: Hub -> Clients -> All
+            // Konfigurujemy: Hub -> Clients -> All
             hubMock.Setup(h => h.Clients).Returns(clientsMock.Object);
             clientsMock.Setup(c => c.All).Returns(clientProxyMock.Object);
 

@@ -2,9 +2,13 @@
 
 namespace IO_projekt_symulator.Server.Hubs
 {
-    // Ta klasa jest pusta, bo na razie służy tylko do wysyłania wiadomości
-    // Z BACKENDU do KLIENTÓW. Nie potrzebujemy tu metod, które klient wywołuje.
+    /// <summary>
+    /// SignalR Hub responsible for real-time communication with connected clients (Frontend).
+    /// Used primarily to broadcast server-to-client notifications about device state changes.
+    /// </summary>
     public class DevicesHub : Hub
     {
+        // Currently empty as the communication is unidirectional (Server -> Client notifications).
+        // Clients receive updates via "UpdateReceived", "MalfunctionUpdate", etc.
     }
 }

@@ -2,7 +2,7 @@
 using Xunit;
 using Moq;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging; // <--- Ważne dla ILogger
+using Microsoft.Extensions.Logging; 
 using IO_projekt_symulator.Server.Controllers;
 using IO_projekt_symulator.Server.Services;
 using IO_projekt_symulator.Server.Models;
@@ -10,8 +10,16 @@ using IO_projekt_symulator.Server.DTOs;
 
 namespace IO_projekt_symulator.Tests
 {
+    /// <summary>
+    /// Integration/Interaction tests for DevicesController.
+    /// Verifies that HTTP requests are correctly mapped to Service calls with appropriate security flags.
+    /// </summary>
     public class DevicesControllerTests
     {
+        /// <summary>
+        /// Verifies that an update request initiated by an Administrator (via API) 
+        /// invokes the service with the 'bypassReadOnly' flag set to TRUE.
+        /// </summary>
         [Fact]
         public void UpdateState_AdminRequest_ShouldUpdateServiceAndNotifyClients()
         {

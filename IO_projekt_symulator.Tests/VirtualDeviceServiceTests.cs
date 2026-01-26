@@ -11,8 +11,20 @@ using IO_projekt_symulator.Server.Hubs;
 
 namespace IO_projekt_symulator.Tests
 {
+    /// <summary>
+    /// Unit tests for VirtualDeviceService.
+    /// Focuses on business logic validation, security rules (ReadOnly), and data integrity (Clamp).
+    /// </summary>
     public class VirtualDeviceServiceTests
     {
+        /// <summary>
+        /// Verifies that the UpdateDeviceState method correctly enforces security rules and data validation.
+        /// Scenarios covered:
+        /// 1. Hacker Attempt: External modification of a ReadOnly Sensor should be rejected (return null).
+        /// 2. Admin Action: Authorized modification of a Sensor should be accepted.
+        /// 3. Normal Operation: Modification of a Switch should be accepted.
+        /// 4. Data Validation: Value exceeding Max limit should be clamped to Max.
+        /// </summary>
         [Theory]
         // 0=Switch, 1=Slider, 2=Sensor
         [InlineData(2, true, false, 25.0, null)]   // Haker -> NULL

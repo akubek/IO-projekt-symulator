@@ -7,6 +7,7 @@ import Button from "@mui/material/Button";
 import DeviceCard from "./components/DeviceCard";
 import CreateDeviceModal from "./components/CreateDeviceModal";
 import DeviceControlModal from "./components/DeviceControlModal";
+import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 
 function SimulatorPanel() {
 
@@ -22,26 +23,43 @@ function SimulatorPanel() {
             const response = await fetch("/api/devices");
             if (!response.ok) { throw new Error("Failed to fetch devices"); }
             return response.json();
-        }
+        },
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false
     });
-
-    // Polling effect to refresh device list every 5 seconds
+    
     useEffect(() => {
-        // do not poll if modal is open
-        if (createModalOpen) return;
-        // refresh selected device
-        else if (selectedDevice) { 
+        const connection = new HubConnectionBuilder().withUrl("/devicesHub")
+                                                     .withAutomaticReconnect()
+                                                     .configureLogging(LogLevel.Information)
+                                                     .build();
+        // connection start
+        connection.start()
+            .then(() => console.log("SignalR Connected"))
+            .catch(err => console.error("SignalR Connection Error: ", err));
+
+        // listening for updates from the server and invalidating the query
+        connection.on("UpdateReceived", (id, value) => {
+            console.log(`UpdateReceived for device ${id}: ${value}`);
+            queryClient.invalidateQueries({ queryKey: ['devices'] });
+        });
+
+        // connection cleanup
+        return () => {
+            connection.off("UpdateReceived");
+            connection.stop();
+        };
+    }, [queryClient]);
+
+    // Refresh selected device when devices change
+    useEffect(() => {
+        if (selectedDevice && devices.length > 0) {
             const updated = devices.find(d => d.id === selectedDevice.id);
-            if (updated) {
+            if (updated && JSON.stringify(updated) !== JSON.stringify(selectedDevice)) {
                 setSelectedDevice(updated);
             }
         }
-        const id = setInterval(() => {
-            queryClient.invalidateQueries({ queryKey: ['devices'] });
-        }, 5000);
-        return () => clearInterval(id);
-    }, [devices, selectedDevice, createModalOpen, queryClient]);
-
+    }, [devices, selectedDevice]);
 
     // Mutations for creating the device type object through API
     const createDeviceMutation = useMutation({
@@ -71,10 +89,7 @@ function SimulatorPanel() {
             });
             if (!response.ok) { throw new Error("Create update failed"); }
             return response.json();
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['devices'] });
-        },
+        }
     });
 
     const handleMalfunctionMutation = useMutation({
@@ -112,8 +127,11 @@ function SimulatorPanel() {
         },
     });
 
+ 
+
     // Handler for device state updates
     const handleDeviceUpdate = (device, newVal) => {
+<<<<<<< HEAD
         const min = device.config?.min;
         const max = device.config?.max;
 
@@ -121,6 +139,15 @@ function SimulatorPanel() {
             if (newVal < min) newVal = min;
             if (newVal > max) newVal = max;
         }
+=======
+        // Pobieramy limity (zabezpieczenie na null)
+        const min = device.config?.min ?? 0;
+        const max = device.config?.max ?? 100;
+
+        // Prosta i poprawna walidacja zakresu
+        if (newVal < min) newVal = min;
+        if (newVal > max) newVal = max;
+>>>>>>> master
 
         updateDeviceMutation.mutate({
             id: device.id,

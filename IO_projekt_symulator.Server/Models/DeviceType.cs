@@ -2,13 +2,25 @@
 
 namespace IO_projekt_symulator.Server.Models
 {
-    // Ta linia automatycznie konwertuje nasz C# enum na tekst (string) w JSON-ie
+    /// <summary>
+    /// Enumeration defining the supported types of virtual devices.
+    /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum DeviceType
     {
-        // Używamy '@', ponieważ 'switch' to słowo kluczowe w C#
+        /// <summary>
+        /// Represents a binary state device (ON/OFF).
+        /// </summary>
         @switch,
+
+        /// <summary>
+        /// Represents a device with a continuous range of values (e.g., dimmer, blinds).
+        /// </summary>
         slider,
+
+        /// <summary>
+        /// Represents a read-only device that reports measurements (e.g., thermometer).
+        /// </summary>
         sensor
     }
 }

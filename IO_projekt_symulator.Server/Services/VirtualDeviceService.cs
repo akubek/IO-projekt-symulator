@@ -9,9 +9,14 @@ using System.Text.Json;
 
 namespace IO_projekt_symulator.Server.Services
 {
+    /// <summary>
+    /// Core service responsible for managing the lifecycle and state of virtual devices.
+    /// Handles persistence (JSON file), validation logic, and broadcasting updates via SignalR and RabbitMQ.
+    /// </summary>
     public class VirtualDeviceService : IVirtualDeviceService
     {
         private ConcurrentDictionary<Guid, Device> _devices = new();
+<<<<<<< HEAD
         private readonly IHubContext<DevicesHub> _hubContext;
         private readonly IPublishEndpoint _publishEndpoint;
         private readonly string _filePath = "devices_db.json";
@@ -26,9 +31,27 @@ namespace IO_projekt_symulator.Server.Services
             if (_devices.IsEmpty)
             {
             }
+=======
+
+        // SignalR context used to broadcast real-time updates to connected frontend clients.
+        private readonly IHubContext<DevicesHub> _hubContext;
+
+        // MassTransit bus for publishing integration events to other microservices (e.g. Control Panel).
+        private readonly IBus _bus;
+
+        private readonly string _filePath = "devices_db.json";
+
+        public VirtualDeviceService(IHubContext<DevicesHub> hubContext, IBus bus)
+        {
+            _hubContext = hubContext;
+            _bus = bus;
+            LoadData();
+>>>>>>> master
         }
 
-        // Metoda do zapisu do pliku
+        /// <summary>
+        /// Persists the current state of devices to a local JSON file.
+        /// </summary>
         private void SaveData()
         {
             try
@@ -39,11 +62,13 @@ namespace IO_projekt_symulator.Server.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Błąd zapisu danych: {ex.Message}");
+                Console.WriteLine($"Error saving data: {ex.Message}");
             }
         }
 
-        // Metoda do odczytu z pliku
+        /// <summary>
+        /// Loads device data from the local JSON file upon startup.
+        /// </summary>
         private void LoadData()
         {
             if (!File.Exists(_filePath)) return;
@@ -62,29 +87,32 @@ namespace IO_projekt_symulator.Server.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Błąd odczytu danych: {ex.Message}");
+                Console.WriteLine($"Error reading data: {ex.Message}");
             }
-            // Dodajmy urządzenia testowe pasujące do nowego schematu
-            //AddDevice("Światło Salon", DeviceType.@switch, "Salon", "Główne światło");
-            //AddDevice("Roleta Duża", DeviceType.slider, "Salon", "Roleta okienna");
-            //AddDevice("Temperatura", DeviceType.sensor, "Sypialnia", "Czujnik temperatury");
         }
 
+        /// <summary>
+        /// Creates a new device based on the provided DTO and adds it to the collection.
+        /// </summary>
+        /// <param name="dto">Data transfer object containing device initialization details.</param>
+        /// <returns>The created Device object.</returns>
         public Device AddDevice(CreateDeviceDto dto)
         {
-            // Parsowanie typu (string -> enum)
+            // Parse device type string to enum
             if (!Enum.TryParse<DeviceType>(dto.Type, true, out var deviceType))
             {
-                deviceType = DeviceType.@switch; // Fallback, jeśli typ jest błędny
+                deviceType = DeviceType.@switch; // Fallback default
             }
+
             var device = new Device
             {
                 Name = dto.Name,
                 Type = deviceType,
                 Location = dto.Location,
                 Description = dto.Description,
-                CreatedAt = DateTime.UtcNow // <-- Ustawiamy czas serwera
+                CreatedAt = DateTime.UtcNow
             };
+
             if (dto.Config != null)
             {
                 device.Config.Readonly = dto.Config.Readonly;
@@ -94,11 +122,11 @@ namespace IO_projekt_symulator.Server.Services
             }
             else
             {
-                // TUTAJ BUDUJEMY URZĄDZENIE ZGODNIE ZE SCHEMATEM
+                // Initialize default configuration based on device type
                 switch (deviceType)
                 {
                     case DeviceType.@switch:
-                        device.State.Value = 0; // 0 = OFF, 1 = ON
+                        device.State.Value = 0;
                         device.Config.Min = 0;
                         device.Config.Max = 1;
                         device.Config.Step = 1;
@@ -106,7 +134,7 @@ namespace IO_projekt_symulator.Server.Services
                         break;
 
                     case DeviceType.slider:
-                        device.State.Value = 0; // 0%
+                        device.State.Value = 0;
                         device.Config.Min = 0;
                         device.Config.Max = 100;
                         device.Config.Step = 5;
@@ -114,7 +142,7 @@ namespace IO_projekt_symulator.Server.Services
                         break;
 
                     case DeviceType.sensor:
-                        device.State.Value = 21.5; // Domyślna temp.
+                        device.State.Value = 21.5;
                         device.State.Unit = "°C";
                         device.Config.Min = -10;
                         device.Config.Max = 50;
@@ -122,16 +150,16 @@ namespace IO_projekt_symulator.Server.Services
                         break;
                 }
             }
+
             if (dto.State != null)
             {
-                // Jeśli frontend podał wartość startową, użyj jej
                 if (dto.State.Value.HasValue)
                     device.State.Value = dto.State.Value.Value;
 
                 device.State.Unit = dto.State.Unit;
             }
+
             _devices.TryAdd(device.Id, device);
-            // --- POPRAWKA (Punkt 4): Zapisujemy natychmiast po dodaniu ---
             SaveData();
             return device;
         }
@@ -147,20 +175,22 @@ namespace IO_projekt_symulator.Server.Services
             return _devices.Values;
         }
 
+        /// <summary>
+        /// Removes a device from the system by its unique identifier.
+        /// </summary>
+        /// <param name="id">The GUID of the device to remove.</param>
+        /// <returns>True if removal was successful; otherwise, false.</returns>
         public bool RemoveDevice(Guid id)
         {
-            // Próbujemy usunąć z pamięci RAM
             var removed = _devices.TryRemove(id, out _);
-
-            // JEŚLI usunięto z RAMu, to NATYCHMIAST zapisz to do pliku!
             if (removed)
             {
-                SaveData(); // <--- TEGO PRAWDOPODOBNIE CI BRAKUJE
+                SaveData();
             }
-
             return removed;
         }
 
+<<<<<<< HEAD
         
         // --- ZMODYFIKOWANA METODA UPDATE ---
         public async Task<Device?> UpdateDeviceStateAsync(Guid id, double? newValue, string? newUnit, bool bypassReadOnly = false)
@@ -169,50 +199,61 @@ namespace IO_projekt_symulator.Server.Services
 
             if (device.Malfunctioning) return null;
 
+=======
+        /// <summary>
+        /// Updates the state of a specific device. Includes validation logic and security checks.
+        /// </summary>
+        /// <param name="id">Device ID.</param>
+        /// <param name="newValue">New numeric value to set.</param>
+        /// <param name="newUnit">New unit string (optional).</param>
+        /// <param name="bypassReadOnly">If true, allows modification of ReadOnly devices (e.g. Admin override).</param>
+        /// <returns>The updated Device object, or null if update failed/rejected.</returns>
+        public Device? UpdateDeviceState(Guid id, double? newValue, string? newUnit, bool bypassReadOnly = false)
+        {
+            if (!_devices.TryGetValue(id, out var device)) return null;
+
+            // Security check: Prevent modification of ReadOnly sensors unless authorized (bypassReadOnly)
+>>>>>>> master
             if (device.Config.Readonly && !bypassReadOnly) return null;
 
-            // Logika wykrywania zmian (dla SignalR)
             bool changed = false;
 
-            // Aktualizuj wartość jeśli podano
             if (newValue.HasValue)
             {
                 double val = newValue.Value;
 
-                // --- POPRAWKA (Punkt 2): Walidacja zakresu (Math.Clamp) ---
-                // Sprawdzamy zakres tylko jeśli Min/Max są zdefiniowane w Configu
+                // Validation: Clamp value within defined Min/Max limits
                 if (device.Config.Min.HasValue && device.Config.Max.HasValue)
                 {
                     val = Math.Clamp(val, device.Config.Min.Value, device.Config.Max.Value);
                 }
 
                 double oldValue = device.State.Value ?? 0;
-                if (Math.Abs(oldValue - newValue.Value) > 0.001)
+                // Check if value actually changed (with tolerance for floating point)
+                if (Math.Abs(oldValue - val) > 0.001)
                 {
-                    device.State.Value = newValue.Value;
+                    device.State.Value = val;
                     changed = true;
                 }
             }
 
-            // Aktualizuj jednostkę jeśli podano
             if (!string.IsNullOrEmpty(newUnit) && device.State.Unit != newUnit)
             {
                 device.State.Unit = newUnit;
                 changed = true;
             }
 
-            // Wyślij powiadomienie tylko jeśli coś się zmieniło
             if (changed)
             {
-                // Wysyłamy powiadomienie SignalR
+                // Notify frontend clients via SignalR
                 if (device.State.Value.HasValue)
                 {
                     _hubContext.Clients.All.SendAsync("UpdateReceived", device.Id, device.State.Value.Value);
                 }
 
-                // --- POPRAWKA (Punkt 4): Zapisujemy natychmiast po aktualizacji ---
                 SaveData();
 
+<<<<<<< HEAD
                 await _hubContext.Clients.All.SendAsync(
                     "DeviceUpdated",
                     new DeviceUpdatedEventDto
@@ -229,24 +270,36 @@ namespace IO_projekt_symulator.Server.Services
                     Value = device.State.Value,
                     Unit = device.State.Unit,
                     Malfunctioning = device.Malfunctioning
+=======
+                // Publish event to RabbitMQ for external subscribers
+                _bus.Publish(new DeviceUpdatedEvent
+                {
+                    DeviceId = device.Id,
+                    NewValue = device.State.Value ?? 0
+>>>>>>> master
                 });
             }
 
             return device;
         }
 
+<<<<<<< HEAD
         // ... inne metody ...
 
         public async Task<bool> SetMalfunctionStateAsync(Guid id, bool isMalfunctioning)
+=======
+        /// <summary>
+        /// Sets the malfunction state of a device (simulated breakdown).
+        /// </summary>
+        public bool SetMalfunctionState(Guid id, bool isMalfunctioning)
+>>>>>>> master
         {
             if (!_devices.TryGetValue(id, out var device)) return false;
 
-            // Aktualizujemy stan w pamięci
             device.Malfunctioning = isMalfunctioning;
-
-            // 1. Zapisujemy zmianę do pliku (Persistence)
             SaveData();
 
+<<<<<<< HEAD
             // 2. Powiadamiamy frontend przez SignalR (Real-time update)
             // Dzięki temu, jak jeden admin kliknie "Simulate Malfunction",
             // to wszystkim innym od razu zapali się czerwona lampka.
@@ -270,20 +323,31 @@ namespace IO_projekt_symulator.Server.Services
                 Unit = device.State.Unit,
                 Malfunctioning = isMalfunctioning
             });
+=======
+            // Notify frontend about malfunction status change
+            _hubContext.Clients.All.SendAsync("MalfunctionUpdate", id, isMalfunctioning);
+>>>>>>> master
 
             return true;
         }
 
-        // Domyślnie symulacja działa (true)
+        /// <summary>
+        /// Global flag to enable or disable the background simulation service.
+        /// </summary>
         public bool IsSimulationEnabled { get; set; } = true;
-
-
 
         public void ToggleSimulation(bool enable)
         {
             IsSimulationEnabled = enable;
-            // Opcjonalnie: Powiadom frontend, że symulacja stanęła (żeby przycisk zmienił kolor)
             _hubContext.Clients.All.SendAsync("SimulationStateChanged", enable);
+        }
+
+        /// <summary>
+        /// Helper method for Unit Tests to inject devices without using DTOs.
+        /// </summary>
+        public void AddDeviceForTest(Device device)
+        {
+            _devices.TryAdd(device.Id, device);
         }
     }
 }

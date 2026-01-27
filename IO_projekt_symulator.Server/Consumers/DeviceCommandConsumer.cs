@@ -1,44 +1,49 @@
-﻿using MassTransit;
-using IO_projekt_symulator.Server.Services; // Żeby widzieć Twój serwis
-using IO_projekt_symulator.Server.Contracts; // Żeby widzieć kontrakt
+﻿using IO_projekt_symulator.Server.Contracts;
+using IO_projekt_symulator.Server.Services;
+using MassTransit;
 
 namespace IO_projekt_symulator.Server.Consumers
 {
-    // IConsumer<T> to interfejs z MassTransit
+    /// <summary>
+    /// Consumes commands from the message bus (RabbitMQ) to update device states.
+    /// Handles requests from external systems (e.g. Control Panel).
+    /// </summary>
     public class DeviceCommandConsumer : IConsumer<SetDeviceStateCommand>
     {
         private readonly IVirtualDeviceService _deviceService;
         private readonly ILogger<DeviceCommandConsumer> _logger;
 
-        // Wstrzykujemy Twój główny serwis (Singleton)
         public DeviceCommandConsumer(IVirtualDeviceService deviceService, ILogger<DeviceCommandConsumer> logger)
         {
             _deviceService = deviceService;
             _logger = logger;
         }
 
-        // --- TU JEST TWOJA LOGIKA BIZNESOWA ---
-        // Wywołujemy UpdateDeviceState z parametrem bypassReadOnly = FALSE.
-        // To oznacza: "Jeśli Panel próbuje zmienić sensor, wyrzuć null/błąd".
         public Task Consume(ConsumeContext<SetDeviceStateCommand> context)
         {
             var msg = context.Message;
-            _logger.LogInformation($"[RABBITMQ] Otrzymano komendę: ID={msg.DeviceId}, Val={msg.Value}");
+            _logger.LogInformation($"[RabbitMQ] Received command: ID={msg.DeviceId}, Val={msg.Value}");
 
+<<<<<<< HEAD
             var result = _deviceService.UpdateDeviceStateAsync(
+=======
+            // Process update with bypassReadOnly = false.
+            // This ensures external systems cannot modify ReadOnly sensors.
+            var result = _deviceService.UpdateDeviceState(
+>>>>>>> master
                 msg.DeviceId,
                 msg.Value,
-                null, // Unit (zakładamy null)
-                bypassReadOnly: false // <--- BLOKADA BEZPIECZEŃSTWA
+                null,
+                bypassReadOnly: false
             );
 
             if (result == null)
             {
-                _logger.LogWarning($"[RABBITMQ] ODMOWA. Nie można zmienić urządzenia {msg.DeviceId} (może jest ReadOnly?)");
+                _logger.LogWarning($"[RabbitMQ] Update rejected for device {msg.DeviceId} (ReadOnly or Not Found).");
             }
             else
             {
-                _logger.LogInformation($"[RABBITMQ] Zaktualizowano pomyślnie.");
+                _logger.LogInformation($"[RabbitMQ] Update successful.");
             }
 
             return Task.CompletedTask;

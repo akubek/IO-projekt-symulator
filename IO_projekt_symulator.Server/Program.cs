@@ -5,10 +5,19 @@ using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// 1. DODAJ SIGNALR DO KONTENERA
-builder.Services.AddSignalR();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // <-- React
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 
+// Add services to the container.
+// 1.SIGNALR DO KONTENERA
 builder.Services.AddSignalR();
 
 // --- KONFIGURACJA MASSTRANSIT (RABBITMQ) ---
@@ -20,8 +29,14 @@ builder.Services.AddMassTransit(x =>
     // 2. Konfigurujemy po³¹czenie z RabbitMQ
     x.UsingRabbitMq((context, cfg) =>
     {
+<<<<<<< HEAD
         cfg.Host("localhost", "/", h =>
         {
+=======
+        // Tutaj podajemy namiary na serwer RabbitMQ.
+        // lokalnie na Dockerze, to s¹ domyœlne ustawienia:
+        cfg.Host("localhost", "/", h => {
+>>>>>>> master
             h.Username("guest");
             h.Password("guest");
         });
@@ -59,6 +74,8 @@ var app = builder.Build();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
+app.UseCors("AllowReactApp");
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -66,9 +83,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
 app.UseAuthorization();
+
+//app.UseHttpsRedirection();
 
 app.MapControllers();
 

@@ -131,15 +131,6 @@ function SimulatorPanel() {
 
     // Handler for device state updates
     const handleDeviceUpdate = (device, newVal) => {
-<<<<<<< HEAD
-        const min = device.config?.min;
-        const max = device.config?.max;
-
-        if (typeof min === 'number' && typeof max === 'number') {
-            if (newVal < min) newVal = min;
-            if (newVal > max) newVal = max;
-        }
-=======
         // Pobieramy limity (zabezpieczenie na null)
         const min = device.config?.min ?? 0;
         const max = device.config?.max ?? 100;
@@ -147,7 +138,6 @@ function SimulatorPanel() {
         // Prosta i poprawna walidacja zakresu
         if (newVal < min) newVal = min;
         if (newVal > max) newVal = max;
->>>>>>> master
 
         updateDeviceMutation.mutate({
             id: device.id,

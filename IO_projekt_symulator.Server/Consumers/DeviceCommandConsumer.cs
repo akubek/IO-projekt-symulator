@@ -24,13 +24,7 @@ namespace IO_projekt_symulator.Server.Consumers
             var msg = context.Message;
             _logger.LogInformation($"[RabbitMQ] Received command: ID={msg.DeviceId}, Val={msg.Value}");
 
-<<<<<<< HEAD
             var result = _deviceService.UpdateDeviceStateAsync(
-=======
-            // Process update with bypassReadOnly = false.
-            // This ensures external systems cannot modify ReadOnly sensors.
-            var result = _deviceService.UpdateDeviceState(
->>>>>>> master
                 msg.DeviceId,
                 msg.Value,
                 null,

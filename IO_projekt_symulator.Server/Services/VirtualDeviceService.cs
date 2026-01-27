@@ -16,7 +16,8 @@ namespace IO_projekt_symulator.Server.Services
     public class VirtualDeviceService : IVirtualDeviceService
     {
         private ConcurrentDictionary<Guid, Device> _devices = new();
-<<<<<<< HEAD
+
+        // SignalR context used to broadcast real-time updates to connected frontend clients.
         private readonly IHubContext<DevicesHub> _hubContext;
         private readonly IPublishEndpoint _publishEndpoint;
         private readonly string _filePath = "devices_db.json";
@@ -25,16 +26,6 @@ namespace IO_projekt_symulator.Server.Services
         {
             _hubContext = hubContext;
             _publishEndpoint = publishEndpoint;
-
-            LoadData();
-
-            if (_devices.IsEmpty)
-            {
-            }
-=======
-
-        // SignalR context used to broadcast real-time updates to connected frontend clients.
-        private readonly IHubContext<DevicesHub> _hubContext;
 
         // MassTransit bus for publishing integration events to other microservices (e.g. Control Panel).
         private readonly IBus _bus;
@@ -46,7 +37,6 @@ namespace IO_projekt_symulator.Server.Services
             _hubContext = hubContext;
             _bus = bus;
             LoadData();
->>>>>>> master
         }
 
         /// <summary>
@@ -190,30 +180,12 @@ namespace IO_projekt_symulator.Server.Services
             return removed;
         }
 
-<<<<<<< HEAD
         
         // --- ZMODYFIKOWANA METODA UPDATE ---
-        public async Task<Device?> UpdateDeviceStateAsync(Guid id, double? newValue, string? newUnit, bool bypassReadOnly = false)
-        {
-            if (!_devices.TryGetValue(id, out var device)) return null;
-
-            if (device.Malfunctioning) return null;
-
-=======
-        /// <summary>
-        /// Updates the state of a specific device. Includes validation logic and security checks.
-        /// </summary>
-        /// <param name="id">Device ID.</param>
-        /// <param name="newValue">New numeric value to set.</param>
-        /// <param name="newUnit">New unit string (optional).</param>
-        /// <param name="bypassReadOnly">If true, allows modification of ReadOnly devices (e.g. Admin override).</param>
-        /// <returns>The updated Device object, or null if update failed/rejected.</returns>
         public Device? UpdateDeviceState(Guid id, double? newValue, string? newUnit, bool bypassReadOnly = false)
         {
             if (!_devices.TryGetValue(id, out var device)) return null;
 
-            // Security check: Prevent modification of ReadOnly sensors unless authorized (bypassReadOnly)
->>>>>>> master
             if (device.Config.Readonly && !bypassReadOnly) return null;
 
             bool changed = false;
@@ -252,81 +224,30 @@ namespace IO_projekt_symulator.Server.Services
                 }
 
                 SaveData();
-
-<<<<<<< HEAD
-                await _hubContext.Clients.All.SendAsync(
-                    "DeviceUpdated",
-                    new DeviceUpdatedEventDto
-                    {
-                        DeviceId = device.Id,
-                        Value = device.State.Value,
-                        Unit = device.State.Unit,
-                        Malfunctioning = device.Malfunctioning
-                    });
-
-                await _publishEndpoint.Publish(new DeviceUpdatedEvent
-                {
-                    DeviceId = device.Id,
-                    Value = device.State.Value,
-                    Unit = device.State.Unit,
-                    Malfunctioning = device.Malfunctioning
-=======
-                // Publish event to RabbitMQ for external subscribers
-                _bus.Publish(new DeviceUpdatedEvent
-                {
-                    DeviceId = device.Id,
-                    NewValue = device.State.Value ?? 0
->>>>>>> master
-                });
             }
 
             return device;
         }
 
-<<<<<<< HEAD
         // ... inne metody ...
 
-        public async Task<bool> SetMalfunctionStateAsync(Guid id, bool isMalfunctioning)
-=======
-        /// <summary>
-        /// Sets the malfunction state of a device (simulated breakdown).
-        /// </summary>
         public bool SetMalfunctionState(Guid id, bool isMalfunctioning)
->>>>>>> master
         {
             if (!_devices.TryGetValue(id, out var device)) return false;
 
             device.Malfunctioning = isMalfunctioning;
             SaveData();
 
-<<<<<<< HEAD
             // 2. Powiadamiamy frontend przez SignalR (Real-time update)
             // Dzięki temu, jak jeden admin kliknie "Simulate Malfunction",
             // to wszystkim innym od razu zapali się czerwona lampka.
             // Używamy nazwy zdarzenia "DeviceUpdated" lub specyficznego "MalfunctionChanged"
             // Tutaj dla uproszczenia wysyłamy sygnał, że urządzenie się zmieniło.
             // Frontend prawdopodobnie nasłuchuje na zmiany lub odświeży listę.
-            await _hubContext.Clients.All.SendAsync(
-                "DeviceUpdated",
-                new DeviceUpdatedEventDto
-                {
-                    DeviceId = id,
-                    Value = device.State.Value,
-                    Unit = device.State.Unit,
-                    Malfunctioning = isMalfunctioning
-                });
 
-            await _publishEndpoint.Publish(new DeviceUpdatedEvent
-            {
-                DeviceId = id,
-                Value = device.State.Value,
-                Unit = device.State.Unit,
-                Malfunctioning = isMalfunctioning
-            });
-=======
-            // Notify frontend about malfunction status change
+            // OPCJA A: Jeśli frontend nasłuchuje tylko na 'UpdateReceived' (wartości):
+            // Możemy wysłać nową metodę, np. "MalfunctionUpdate"
             _hubContext.Clients.All.SendAsync("MalfunctionUpdate", id, isMalfunctioning);
->>>>>>> master
 
             return true;
         }

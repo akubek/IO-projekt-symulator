@@ -1,13 +1,9 @@
 ﻿using IO_projekt_symulator.Server.DTOs;
 using IO_projekt_symulator.Server.Services;
 using Microsoft.AspNetCore.Mvc;
-<<<<<<< HEAD
-using IO_projekt_symulator.Server.DTOs; // <--- Dodajemy ten using, żeby widział folder DTOs
 
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
-=======
->>>>>>> master
 
 namespace IO_projekt_symulator.Server.Controllers
 {
@@ -67,7 +63,6 @@ namespace IO_projekt_symulator.Server.Controllers
         {
             _logger.LogInformation($"Received state update request for device: {id}");
 
-<<<<<<< HEAD
             var device = _deviceService.GetDeviceById(id);
             if (device == null) return NotFound("Device not found.");
 
@@ -75,15 +70,6 @@ namespace IO_projekt_symulator.Server.Controllers
 
             var updatedDevice = await _deviceService.UpdateDeviceStateAsync(id, dto.Value, dto.Unit, bypassReadOnly: true);
             if (updatedDevice == null) return NotFound("Device not found or readonly.");
-=======
-            // Admin requests via API are trusted, so we set bypassReadOnly = true
-            var updatedDevice = _deviceService.UpdateDeviceState(id, dto.Value, dto.Unit, bypassReadOnly: true);
-
-            if (updatedDevice == null)
-            {
-                return NotFound("Device not found or readonly restriction applied.");
-            }
->>>>>>> master
 
             return Ok(updatedDevice);
         }

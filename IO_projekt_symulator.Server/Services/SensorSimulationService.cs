@@ -60,13 +60,8 @@ namespace IO_projekt_symulator.Server.Services
                             newVal = Math.Clamp(newVal, sensor.Config.Min.Value, sensor.Config.Max.Value);
                         }
 
-<<<<<<< HEAD
                         // 5. Aktualizacja w serwisie
                         deviceService.UpdateDeviceStateAsync(sensor.Id, newVal, null, true);
-=======
-                        // Update device state with Admin privileges (simulating internal physics)
-                        deviceService.UpdateDeviceState(sensor.Id, newVal, null, true);
->>>>>>> master
 
                         string unit = sensor.State.Unit ?? "";
                         _logger.LogInformation($"[Simulation] '{sensor.Name}': {newVal}{unit}");

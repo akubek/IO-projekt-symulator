@@ -29,15 +29,6 @@ namespace IO_projekt_symulator.Server.Services
         /// </summary>
         bool RemoveDevice(Guid id);
 
-<<<<<<< HEAD
-        // ZMIANA: Dodajemy 'unit' (może być null)
-        Task<Device?> UpdateDeviceStateAsync(Guid id, double? newValue, string? newUnit, bool bypassReadOnly = false);
-        Task<bool> SetMalfunctionStateAsync(Guid id, bool isMalfunctioning);
-        // --- NOWOŚĆ: Sterowanie symulacją ---
-        bool IsSimulationEnabled { get; set; } // Czy symulacja działa?
-        void ToggleSimulation(bool enable);    // Włącznik/Wyłącznik
-    }
-=======
         /// <summary>
         /// Updates the value and unit of a device.
         /// </summary>
@@ -47,7 +38,6 @@ namespace IO_projekt_symulator.Server.Services
         /// <param name="bypassReadOnly">Security flag to override ReadOnly restrictions (e.g. for Admin).</param>
         /// <returns>The updated device or null if not found/rejected.</returns>
         Device? UpdateDeviceState(Guid id, double? newValue, string? newUnit, bool bypassReadOnly = false);
->>>>>>> master
 
         /// <summary>
         /// Sets the malfunction status of a device.
@@ -63,5 +53,11 @@ namespace IO_projekt_symulator.Server.Services
         /// Toggles the background simulation on or off.
         /// </summary>
         void ToggleSimulation(bool enable);
+        // ZMIANA: Dodajemy 'unit' (może być null)
+        Task<Device?> UpdateDeviceStateAsync(Guid id, double? newValue, string? newUnit, bool bypassReadOnly = false);
+        Task<bool> SetMalfunctionStateAsync(Guid id, bool isMalfunctioning);
+        // --- NOWOŚĆ: Sterowanie symulacją ---
+        bool IsSimulationEnabled { get; set; } // Czy symulacja działa?
+        void ToggleSimulation(bool enable);    // Włącznik/Wyłącznik
     }
 }

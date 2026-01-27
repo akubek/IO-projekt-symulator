@@ -29,14 +29,8 @@ builder.Services.AddMassTransit(x =>
     // 2. Konfigurujemy po³¹czenie z RabbitMQ
     x.UsingRabbitMq((context, cfg) =>
     {
-<<<<<<< HEAD
         cfg.Host("localhost", "/", h =>
         {
-=======
-        // Tutaj podajemy namiary na serwer RabbitMQ.
-        // lokalnie na Dockerze, to s¹ domyœlne ustawienia:
-        cfg.Host("localhost", "/", h => {
->>>>>>> master
             h.Username("guest");
             h.Password("guest");
         });

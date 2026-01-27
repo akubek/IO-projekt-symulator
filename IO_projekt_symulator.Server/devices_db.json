@@ -4,11 +4,7 @@
     "name": "Termometr Zewn\u0119trzny",
     "type": "sensor",
     "state": {
-<<<<<<< HEAD
-      "value": 49.8,
-=======
       "value": 33.6,
->>>>>>> master
       "unit": "\u00B0C"
     },
     "config": {
@@ -27,13 +23,8 @@
     "name": "Rolety Salon",
     "type": "slider",
     "state": {
-<<<<<<< HEAD
-      "value": 50,
-      "unit": "null"
-=======
       "value": 20,
       "unit": null
->>>>>>> master
     },
     "config": {
       "min": 0,
@@ -51,11 +42,7 @@
     "name": "Rolety Balkonowe",
     "type": "slider",
     "state": {
-<<<<<<< HEAD
-      "value": 50,
-=======
       "value": 10,
->>>>>>> master
       "unit": null
     },
     "config": {
@@ -74,11 +61,7 @@
     "name": "Termometr Wewn\u0119trzny",
     "type": "sensor",
     "state": {
-<<<<<<< HEAD
-      "value": 8.6,
-=======
       "value": 31.4,
->>>>>>> master
       "unit": "\u00B0C"
     },
     "config": {
@@ -97,11 +80,7 @@
     "name": "Stacja Pogodowa",
     "type": "sensor",
     "state": {
-<<<<<<< HEAD
-      "value": 47.8,
-=======
       "value": 28.2,
->>>>>>> master
       "unit": "\u00B0C"
     },
     "config": {
@@ -120,11 +99,7 @@
     "name": "Wilgotno\u015B\u0107 \u0141azienka",
     "type": "sensor",
     "state": {
-<<<<<<< HEAD
-      "value": 56.1,
-=======
       "value": 11,
->>>>>>> master
       "unit": "%"
     },
     "config": {
@@ -162,11 +137,7 @@
     "name": "Zu\u017Cycie Pr\u0105du (Licznik)",
     "type": "sensor",
     "state": {
-<<<<<<< HEAD
-      "value": 6.5,
-=======
       "value": 0.2,
->>>>>>> master
       "unit": "W"
     },
     "config": {
@@ -204,11 +175,7 @@
     "name": "Lampa Nocna",
     "type": "slider",
     "state": {
-<<<<<<< HEAD
-      "value": 16,
-=======
       "value": 15,
->>>>>>> master
       "unit": "%"
     },
     "config": {
